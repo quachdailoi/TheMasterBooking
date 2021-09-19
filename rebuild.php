@@ -3,6 +3,7 @@
 class Rebuild {
     public static function run() {
         echo shell_exec(join(" && ", [
+            "composer install",
             "php artisan config:clear",
             "php artisan cache:clear",
             "php artisan env",
