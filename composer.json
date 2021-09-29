@@ -12,7 +12,8 @@
         "laravel/passport": "^10.1",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
-        "symfony/psr-http-message-bridge": "^2.1"
+        "symfony/psr-http-message-bridge": "^2.1",
+        "twilio/sdk": "^6.28"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

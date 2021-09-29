@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
+use Twilio\Rest\Client;
 
 class UserController extends Controller
 {
@@ -47,6 +48,7 @@ class UserController extends Controller
     const CODE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'IER400002';
     const CODE_WRONG_FIELD_WHEN_LOGIN = 'ERR400009';
     const CODE_INTERNAL_ERROR_WHEN_LOGIN = 'EX500004';
+    const CODE_INVALID_PHONE_NUMBER = 'ERR400010';
 
     // Error message
     const MESSAGE_PHONE_NUMBER_EXIST = 'Phone number does exist.';
@@ -59,6 +61,7 @@ class UserController extends Controller
     const MESSAGE_VERIFY_CODE_FAIL = 'Verify code failed.';
     const MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'Must enter phone numer and password when login';
     const MESSAGE_WRONG_FIELD_WHEN_LOGIN = 'Phone number or password was wrong.';
+    const MESSAGE_INVALID_PHONE_NUMBER = 'Invalid phone number - cannot send code';
 
     // Successful code
     const CODE_REGISTER_SUCCESS = 'ST200001';
@@ -181,6 +184,7 @@ class UserController extends Controller
             if (!$response = $this->checkValidReceiverWithType($receiver, $type)) {
                 return response()->json($response, 400);
             }
+            $message = "(TheCutSpa) $code is your authentication code. The code will expire in 5 minnutes";
             // impact DB
             $verifiedCode = VerifiedCode::where($conditions)->first();
             if (!$verifiedCode) {
@@ -194,6 +198,7 @@ class UserController extends Controller
                     return response()->json($response, 400);
                 }
                 // send code to email or phone->
+                $this->sendMessage($message, $receiver);
                 $response = [
                     self::KEY_CODE => 200,
                     self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_SUCCESS,
@@ -213,7 +218,6 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
-            $message = "(TheCutSpa) $code is your authentication code. The code will expire in 5 minnutes";
             $verifiedCode->{VerifiedCode::COL_CODE} = $code;
             $verifiedCode->{VerifiedCode::COL_CREATED_AT} = Carbon::now();
             $verifiedCode->{VerifiedCode::COL_WAS_VERIFIED} = VerifiedCode::NOT_VERIFY_STATUS;
@@ -225,6 +229,7 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
+            $this->sendMessage($message, $receiver);
             $response = [
                 self::KEY_CODE => 200,
                 self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_SUCCESS,
@@ -233,6 +238,14 @@ class UserController extends Controller
             ];
             return response()->json($response, 200);
         } catch (Exception $ex) {
+            if (str_contains($ex->getMessage(), '[HTTP 400] Unable to create record')) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_INVALID_PHONE_NUMBER,
+                    self::KEY_MESSAGE => self::MESSAGE_INVALID_PHONE_NUMBER,
+                ];
+                return response()->json($response, 400);
+            }
             $response = [
                 self::KEY_CODE => 500,
                 self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_SENDING_CODE,
@@ -337,6 +350,23 @@ class UserController extends Controller
             ];
             return response()->json($response, 500);
         }
+    }
+
+    /**
+     * Sends sms to user using Twilio's programmable sms client
+     * @param String $message Body of sms
+     * @param Number $recipients string or array of phone number of recepient
+     */
+    private function sendMessage($message, $recipients)
+    {
+        $account_sid = getenv("TWILIO_SID");
+        $auth_token = getenv("TWILIO_AUTH_TOKEN");
+        $twilio_number = getenv("TWILIO_NUMBER");
+        $client = new Client($account_sid, $auth_token);
+        return $client->messages->create(
+            $recipients,
+            ['from' => $twilio_number, 'body' => $message]
+        );
     }
 
     /**
