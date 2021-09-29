@@ -2,6 +2,8 @@
 
 namespace App\Exceptions;
 
+use App\Http\Controllers\Controller;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -37,5 +39,23 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    /**
+     * Convert an authentication exception into a response.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Auth\AuthenticationException  $exception
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        return response()->json(
+            [
+                Controller::KEY_CODE => '401',
+                Controller::KEY_DETAIL_CODE => 'ERR401001',
+                Controller::KEY_MESSAGE => 'Unauthentication !!!',
+            ]
+        );
     }
 }

@@ -21,13 +21,15 @@ class UserController extends Controller
     const API_URL_LOGIN = '/authentication/login';
     const API_URL_REGISTER = '/authentication/register';
     const API_URL_SEND_CODE_TO = '/authentication/send-code-to';
-    const API_URL_VERIFY_CODE = 'authentication/verify-code';
+    const API_URL_VERIFY_CODE = '/authentication/verify-code';
+    const API_URL_LOGOUT = '/authentication/logout';
 
     /** Method */
     const METHOD_LOGIN = 'login';
     const METHOD_REGISTER = 'register';
     const METHOD_SEND_CODE_TO = 'sendCodeTo';
     const METHOD_VERIFY_CODE = 'verifyCode';
+    const METHOD_LOGOUT = 'logout';
 
     // type of verified code
     const TYPE_REGISTER = '0';
@@ -49,6 +51,7 @@ class UserController extends Controller
     const CODE_WRONG_FIELD_WHEN_LOGIN = 'ERR400009';
     const CODE_INTERNAL_ERROR_WHEN_LOGIN = 'EX500004';
     const CODE_INVALID_PHONE_NUMBER = 'ERR400010';
+    const CODE_INTERNAL_ERROR_WHEN_LOGOUT = 'EX500005';
 
     // Error message
     const MESSAGE_PHONE_NUMBER_EXIST = 'Phone number does exist.';
@@ -68,12 +71,14 @@ class UserController extends Controller
     const CODE_SEND_CODE_SUCCESS = 'ST200002';
     const CODE_VERIFY_CODE_SUCESS = 'ST200003';
     const CODE_LOGIN_SUCCESS = 'ST200004';
+    const CODE_LOGOUT_SUCCESS = 'ST200005';
 
     // Successful message
     const MESSAGE_REGISTER_SUCCESS = 'Register successfully.';
     const MESSAGE_SEND_CODE_SUCESS = 'Send verified code successfully.';
     const MESSAGE_VERIFY_CODE_SUCESS = 'Email/Phone was verfied successfully.';
     const MESSAGE_LOGIN_SUCCESS = 'Login successfully.';
+    const MESSAGE_LOGOUT_SUCCESS = 'Logout successfully.';
 
     /**
      * @functionName: register
@@ -458,5 +463,33 @@ class UserController extends Controller
         $content = json_decode(app()->handle($request)->getContent());
 
         return $content;
+    }
+
+    /**
+     * @functionName: login
+     * @type:         public
+     * @param:        Empty
+     * @return:       String(Json)
+     */
+    public function logout()
+    {
+        try {
+            Auth::user()->token()->revoke() ?? null;
+
+            $response = [
+                self::KEY_CODE => 200,
+                self::KEY_DETAIL_CODE => self::CODE_LOGOUT_SUCCESS,
+                self::KEY_DATA => [],
+                self::KEY_MESSAGE => self::MESSAGE_LOGOUT_SUCCESS,
+            ];
+            return response()->json($response, 200);
+        } catch (Exception $ex) {
+            $response = [
+                self::KEY_CODE => 500,
+                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_LOGOUT,
+                self::KEY_MESSAGE => $ex->getMessage(),
+            ];
+            return response()->json($response, 500);
+        }
     }
 }
