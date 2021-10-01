@@ -36,6 +36,13 @@ class User extends Authenticatable
     const VAL_REMEMBER_TOKEN = 'remember_token';
     const VAL_CONFIRM_PASSWORD = 'confirmPassword';
     const ACCESS_TOKEN = 'accessToken';
+    const VAL_CURRENT_PASSWORD = 'currentPassword';
+    const VAL_NEW_PASSWORD = 'newPassword';
+    const VAL_CONFIRM_NEW_PASSWORD = 'confirmNewPassword';
+    const VAL_CODE = 'code';
+    const VAL_TYPE = 'type';
+    const VAL_CHANNEL = 'channel';
+    const VAL_RECEIVER = 'receiver';
 
     // Value
     const ADMIN_ROLE_ID = 3;
@@ -103,19 +110,32 @@ class User extends Authenticatable
      * @param:        \Array $message nullable
      * @return:       \Validate $validate
      */
-    public static function validator(array $data)
+    public static function validator(array $data, $receiverChannel = VerifiedCode::EMAIL_CHANNEL)
     {
+        $mailRules = 'required|email:rfc,filter';
+        $phoneRules = 'required|numeric';
+        if ($receiverChannel === VerifiedCode::EMAIL_CHANNEL) {
+            $receiverRules = $mailRules;
+        } else {
+            $receiverRules = $phoneRules;
+        }
         $validatedFields = [
             self::COL_NAME => 'required',
-            self::COL_EMAIL => 'required|email:rfc,filter',
-            self::COL_PHONE => 'required|numeric',
-            self::COL_PASSWORD => 'required|between:6,25|required_with:confirmPassword',
-            self::VAL_CONFIRM_PASSWORD => 'required|same:password',
+            self::COL_EMAIL => $mailRules,
+            self::COL_PHONE => $phoneRules,
+            self::COL_PASSWORD => 'required|between:6,25|required_with:' . self::VAL_CONFIRM_PASSWORD,
+            self::VAL_CONFIRM_PASSWORD => 'required|same:' . self::COL_PASSWORD,
+            self::VAL_NEW_PASSWORD => 'required|between:6,25|required_with:' . self::VAL_CONFIRM_NEW_PASSWORD,
+            self::VAL_CONFIRM_NEW_PASSWORD => 'required|same:' . self::VAL_NEW_PASSWORD,
+            self::VAL_CURRENT_PASSWORD => 'required',
             self::COL_GENDER => 'nullable|numeric',
             self::COL_BIRTHDAY => 'required',
             self::COL_STATUS => 'required|numeric',
             self::COL_ROLE_ID => 'required|numeric',
             self::COL_STORE_ID => 'nullable|numeric',
+            self::VAL_TYPE => 'required|numeric|between:0,1',
+            self::VAL_CHANNEL => 'required|numeric|between:0,1',
+            self::VAL_RECEIVER => $receiverRules,
         ];
         $errorCode = [
             'required' => ':attribute is required.',
