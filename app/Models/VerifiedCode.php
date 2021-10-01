@@ -23,7 +23,7 @@ class VerifiedCode extends CommonModel
     const NOT_VERIFY_STATUS = false;
     const VERIFIED_STATUS = true;
     const REGISTER_TYPE = 0;
-    const FORGOT_PASSWORD_TYPE = 1;
+    const RESET_PASSWORD_TYPE = 1;
     const EMAIL_CHANNEL = 1;
     const PHONE_CHANNEL = 0;
 

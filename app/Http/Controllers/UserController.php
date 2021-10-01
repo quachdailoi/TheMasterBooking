@@ -11,9 +11,11 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
+use Twilio\Rest\Verify;
 
 class UserController extends Controller
 {
@@ -23,6 +25,8 @@ class UserController extends Controller
     const API_URL_SEND_CODE_TO = '/authentication/send-code-to';
     const API_URL_VERIFY_CODE = '/authentication/verify-code';
     const API_URL_LOGOUT = '/authentication/logout';
+    const API_URL_CHANGE_PASSWORD = '/authentication/change-password';
+    const API_URL_RESET_PASSWORD = '/authentication/reset-password';
 
     /** Method */
     const METHOD_LOGIN = 'login';
@@ -30,6 +34,8 @@ class UserController extends Controller
     const METHOD_SEND_CODE_TO = 'sendCodeTo';
     const METHOD_VERIFY_CODE = 'verifyCode';
     const METHOD_LOGOUT = 'logout';
+    const METHOD_CHANGE_PASSWORD = 'changePassword';
+    const METHOD_RESET_PASSWORD = 'resetPassword';
 
     // type of verified code
     const TYPE_REGISTER = '0';
@@ -52,6 +58,13 @@ class UserController extends Controller
     const CODE_INTERNAL_ERROR_WHEN_LOGIN = 'EX500004';
     const CODE_INVALID_PHONE_NUMBER = 'ERR400010';
     const CODE_INTERNAL_ERROR_WHEN_LOGOUT = 'EX500005';
+    const CODE_PHONE_OR_EMAIL_DUPLICATED = 'ERR400xxx';
+    const CODE_PHONE_OR_EMAIL_NOT_EXIST = 'ERR400xxx';
+    const CODE_WRONG_CURRENT_PASSWORD = 'ERR400xxx';
+    const CODE_CHANGE_PASSWORD_FAIL = 'ERR400xxx';
+    const CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD = 'EX500xxx';
+    const CODE_RET_PASSWORD_FAIL = 'ERR400xxx';
+    const CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD = 'EX500xxx';
 
     // Error message
     const MESSAGE_PHONE_NUMBER_EXIST = 'Phone number does exist.';
@@ -62,9 +75,14 @@ class UserController extends Controller
     const MESSAGE_WRONG_CODE = 'Wrong verification code.';
     const MESSAGE_EXPIRED_CODE = 'Code was expired, resend please.';
     const MESSAGE_VERIFY_CODE_FAIL = 'Verify code failed.';
-    const MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'Must enter phone numer and password when login';
+    const MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'Must enter phone numer and password when login.';
     const MESSAGE_WRONG_FIELD_WHEN_LOGIN = 'Phone number or password was wrong.';
-    const MESSAGE_INVALID_PHONE_NUMBER = 'Invalid phone number - cannot send code';
+    const MESSAGE_INVALID_PHONE_NUMBER = 'Invalid phone number - cannot send code.';
+    const MESSAGE_PHONE_OR_EMAIL_DUPLICATED = 'Email or Phone was duplicated.';
+    const MESSAGE_PHONE_OR_EMAIL_NOT_EXIST = 'Email or Phone does not exist.';
+    const MESSAGE_WRONG_CURRENT_PASSWORD = 'Wrong current password.';
+    const MESSAGE_CHANGE_PASSWORD_FAIL = 'Change password fail.';
+    const MESSAGE_RESET_PASSWORD_FAIL = 'Reset password fail.';
 
     // Successful code
     const CODE_REGISTER_SUCCESS = 'ST200001';
@@ -72,6 +90,8 @@ class UserController extends Controller
     const CODE_VERIFY_CODE_SUCESS = 'ST200003';
     const CODE_LOGIN_SUCCESS = 'ST200004';
     const CODE_LOGOUT_SUCCESS = 'ST200005';
+    const CODE_CHANGE_PASSWORD_SUCCESS = 'ST200xxx';
+    const CODE_RESET_PASSWORD_SUCCESS = 'ST200xxx';
 
     // Successful message
     const MESSAGE_REGISTER_SUCCESS = 'Register successfully.';
@@ -79,6 +99,8 @@ class UserController extends Controller
     const MESSAGE_VERIFY_CODE_SUCESS = 'Email/Phone was verfied successfully.';
     const MESSAGE_LOGIN_SUCCESS = 'Login successfully.';
     const MESSAGE_LOGOUT_SUCCESS = 'Logout successfully.';
+    const MESSAGE_CHANGE_PASSWORD_SUCCESS = 'Change password successfully.';
+    const MESSAGE_RESET_PASSWORD_SUCCESS = 'Reset password successfully.';
 
     /**
      * @functionName: register
@@ -189,7 +211,6 @@ class UserController extends Controller
             if (!$response = $this->checkValidReceiverWithType($receiver, $type)) {
                 return response()->json($response, 400);
             }
-            $message = "(TheCutSpa) $code is your authentication code. The code will expire in 5 minnutes";
             // impact DB
             $verifiedCode = VerifiedCode::where($conditions)->first();
             if (!$verifiedCode) {
@@ -203,7 +224,7 @@ class UserController extends Controller
                     return response()->json($response, 400);
                 }
                 // send code to email or phone->
-                $this->sendMessage($message, $receiver);
+                $this->sendBy($channel, $receiver, $code);
                 $response = [
                     self::KEY_CODE => 200,
                     self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_SUCCESS,
@@ -234,7 +255,7 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
-            $this->sendMessage($message, $receiver);
+            $this->sendBy($channel, $receiver, $code);
             $response = [
                 self::KEY_CODE => 200,
                 self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_SUCCESS,
@@ -260,6 +281,19 @@ class UserController extends Controller
         }
     }
 
+    private function sendBy($type, $receiver, $code)
+    {
+        $message = "(TheCutSpa) $code is your authentication code. The code will expire in 5 minnutes";
+        if ($type == VerifiedCode::EMAIL_CHANNEL) {
+            $details = [
+                'code' => $code,
+            ];
+            \Mail::to($receiver)->send(new \App\Mail\VerificationMail($details));
+            return;
+        }
+        $this->sendMessage($message, $receiver);
+    }
+
     private function checkValidReceiverWithType(string $receiver, int $type)
     {
         $isExistUser = (bool) User::where(User::COL_EMAIL, $receiver)->orWhere(User::COL_PHONE, $receiver)
@@ -267,15 +301,15 @@ class UserController extends Controller
         if ($isExistUser and $type === self::TYPE_REGISTER) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => 'ERR400xxx',
-                self::KEY_MESSAGE => 'Email or Phone was duplicated.',
+                self::KEY_DETAIL_CODE => self::CODE_PHONE_OR_EMAIL_DUPLICATED,
+                self::KEY_MESSAGE => self::MESSAGE_PHONE_OR_EMAIL_DUPLICATED,
             ];
             return $response;
         } elseif (!$isExistUser and $type === self::TYPE_FORGOT_PASSWORD) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => 'ERR400xxx',
-                self::KEY_MESSAGE => 'Email or Phone does not exist.',
+                self::KEY_DETAIL_CODE => self::CODE_PHONE_NUMBER_EXIST,
+                self::KEY_MESSAGE => self::MESSAGE_PHONE_NUMBER_EXIST,
             ];
             return $response;
         }
@@ -288,7 +322,7 @@ class UserController extends Controller
      * @param:        Request $request
      * @return:       String(Json)
      */
-    public function verifyCode(Request $request)
+    public function verifyCode(Request $request, $returnLike = 'api')
     {
         try {
             $input = $request->all();
@@ -340,6 +374,9 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
+            if ($returnLike == 'function') {
+                return true;
+            }
             $response = [
                 self::KEY_CODE => 200,
                 self::KEY_DETAIL_CODE => self::CODE_VERIFY_CODE_SUCESS,
@@ -360,7 +397,7 @@ class UserController extends Controller
     /**
      * Sends sms to user using Twilio's programmable sms client
      * @param String $message Body of sms
-     * @param Number $recipients string or array of phone number of recepient
+     * @param String $recipients string or array of phone number of recepient
      */
     private function sendMessage($message, $recipients)
     {
@@ -487,6 +524,137 @@ class UserController extends Controller
             $response = [
                 self::KEY_CODE => 500,
                 self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_LOGOUT,
+                self::KEY_MESSAGE => $ex->getMessage(),
+            ];
+            return response()->json($response, 500);
+        }
+    }
+
+    /**
+     * @functionName: changePassword
+     * @type:         public
+     * @param:        Request $request
+     * @return:       String(Json)
+     */
+    public function changePassword(Request $request)
+    {
+        try {
+            $currentPassword = $request->{User::VAL_CURRENT_PASSWORD};
+            $newPassword = $request->{User::VAL_NEW_PASSWORD};
+            $confirmNewPassword = $request->{User::VAL_CONFIRM_NEW_PASSWORD};
+
+            $validate = User::validator([
+                User::VAL_CURRENT_PASSWORD => $currentPassword,
+                User::VAL_NEW_PASSWORD => $newPassword,
+                User::VAL_CONFIRM_NEW_PASSWORD => $confirmNewPassword,
+            ]);
+
+            if ($validate->fails()) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
+                    self::KEY_MESSAGE => $validate->errors()->first(),
+                ];
+                return response()->json($response, 400);
+            }
+
+            if (!Hash::check($currentPassword, Auth::user()->{User::COL_PASSWORD})) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_WRONG_CURRENT_PASSWORD,
+                    self::KEY_MESSAGE => self::MESSAGE_WRONG_CURRENT_PASSWORD,
+                ];
+                return response()->json($response, 400);
+            }
+
+            $currentUser = Auth::user();
+            $currentUser->{User::COL_PASSWORD} = bcrypt($newPassword);
+
+            if (!$currentUser->save()) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_CHANGE_PASSWORD_FAIL,
+                    self::KEY_MESSAGE => self::MESSAGE_CHANGE_PASSWORD_FAIL,
+                ];
+                return response()->json($response, 400);
+            }
+            $response = [
+                self::KEY_CODE => 200,
+                self::KEY_DETAIL_CODE => self::CODE_CHANGE_PASSWORD_SUCCESS,
+                self::KEY_DATA => [],
+                self::KEY_MESSAGE => self::MESSAGE_CHANGE_PASSWORD_SUCCESS,
+            ];
+            return response()->json($response, 200);
+        } catch (Exception $ex) {
+            $response = [
+                self::KEY_CODE => 500,
+                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD,
+                self::KEY_MESSAGE => $ex->getMessage(),
+            ];
+            return response()->json($response, 500);
+        }
+    }
+
+    /**
+     * @functionName: resetPassword
+     * @type:         public
+     * @param:        Request $request
+     * @return:       String(Json)
+     */
+    public function resetPassword(Request $request)
+    {
+        try {
+            $receiver = $request->{User::VAL_RECEIVER};
+            $code = $request->{User::VAL_CODE};
+            $channel = $request->{User::VAL_CHANNEL};
+            $newPassword = $request->{User::VAL_NEW_PASSWORD};
+            $confirmNewPassword = $request->{User::VAL_CONFIRM_NEW_PASSWORD};
+
+            $validate = User::validator([
+                User::VAL_CODE => $code,
+                User::VAL_NEW_PASSWORD => $newPassword,
+                User::VAL_CONFIRM_NEW_PASSWORD => $confirmNewPassword,
+                User::VAL_RECEIVER => $receiver,
+            ], $channel);
+
+            if ($validate->fails()) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
+                    self::KEY_MESSAGE => $validate->errors()->first(),
+                ];
+                return response()->json($response, 400);
+            }
+            $request[User::VAL_TYPE] = VerifiedCode::RESET_PASSWORD_TYPE;
+            $this->verifyCode($request, 'function');
+
+            $userNameType = User::COL_PHONE;
+            if ($channel === VerifiedCode::EMAIL_CHANNEL) {
+                $userNameType = User::COL_EMAIL;
+            }
+
+            $user = User::where($userNameType, $receiver)->first();
+            $user->{User::COL_PASSWORD} = bcrypt($newPassword);
+
+            if (!$user->save()) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_RET_PASSWORD_FAIL,
+                    self::KEY_MESSAGE => self::MESSAGE_RESET_PASSWORD_FAIL,
+                ];
+                return response()->json($response, 400);
+            }
+            $response = [
+                self::KEY_CODE => 200,
+                self::KEY_DETAIL_CODE => self::CODE_RESET_PASSWORD_SUCCESS,
+                self::KEY_DATA => [],
+                self::KEY_MESSAGE => self::MESSAGE_RESET_PASSWORD_SUCCESS,
+            ];
+            return response()->json($response, 200);
+        } catch (Exception $ex) {
+            $response = [
+                self::KEY_CODE => 500,
+                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD,
                 self::KEY_MESSAGE => $ex->getMessage(),
             ];
             return response()->json($response, 500);
