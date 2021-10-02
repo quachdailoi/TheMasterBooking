@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 Route::post(UserController::API_URL_LOGIN, [UserController::class, UserController::METHOD_LOGIN]);
 Route::post(UserController::API_URL_REGISTER, [UserController::class, UserController::METHOD_REGISTER]);
 Route::post(UserController::API_URL_SEND_CODE_TO, [UserController::class, UserController::METHOD_SEND_CODE_TO]);
-Route::post(UserController::API_URL_VERIFY_CODE, [UserController::class, UserController::METHOD_VERIFY_CODE]);
 Route::post(UserController::API_URL_RESET_PASSWORD, [UserController::class, UserController::METHOD_RESET_PASSWORD]);
 
 Route::group(['middleware' => 'auth:api'], function () {

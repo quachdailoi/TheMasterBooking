@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
-use Twilio\Rest\Verify;
 
 class UserController extends Controller
 {
@@ -23,7 +22,6 @@ class UserController extends Controller
     const API_URL_LOGIN = '/authentication/login';
     const API_URL_REGISTER = '/authentication/register';
     const API_URL_SEND_CODE_TO = '/authentication/send-code-to';
-    const API_URL_VERIFY_CODE = '/authentication/verify-code';
     const API_URL_LOGOUT = '/authentication/logout';
     const API_URL_CHANGE_PASSWORD = '/authentication/change-password';
     const API_URL_RESET_PASSWORD = '/authentication/reset-password';
@@ -32,7 +30,6 @@ class UserController extends Controller
     const METHOD_LOGIN = 'login';
     const METHOD_REGISTER = 'register';
     const METHOD_SEND_CODE_TO = 'sendCodeTo';
-    const METHOD_VERIFY_CODE = 'verifyCode';
     const METHOD_LOGOUT = 'logout';
     const METHOD_CHANGE_PASSWORD = 'changePassword';
     const METHOD_RESET_PASSWORD = 'resetPassword';
@@ -43,60 +40,59 @@ class UserController extends Controller
 
     // Error code
     const CODE_PHONE_NUMBER_EXIST = 'ERR400001';
-    const CODE_NOT_VERIFY_PHONE = 'ERR400002';
     const CODE_INTERNAL_ERROR_WHEN_REGISTERING = 'EX500001';
-    const CODE_SEND_CODE_FAIL = 'ERR400003';
-    const CODE_WAIT_TO_RESEND_CODE = 'ERR400004';
-    const CODE_SAVE_CODE_TO_DB_FAIL = 'ERR400005';
-    const CODE_WRONG_CODE = 'ERR400006';
-    const CODE_EXPIRED_CODE = 'ERR400007';
-    const CODE_VERIFY_CODE_FAIL = 'ERR400008';
+    const CODE_SEND_CODE_FAIL = 'ERR400002';
+    const CODE_WAIT_TO_RESEND_CODE = 'ERR400003';
+    const CODE_SAVE_CODE_TO_DB_FAIL = 'ERR400004';
+    const CODE_WRONG_CODE = 'ERR400005';
+    const CODE_EXPIRED_CODE = 'ERR400006';
+    const CODE_VERIFY_CODE_FAIL = 'ERR400007';
     const CODE_INTERNAL_ERROR_WHEN_SENDING_CODE = 'EX500002';
-    const CODE_INTERNAL_ERROR_WHEN_VERIFYING_CODE = 'EX500003';
     const CODE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'IER400002';
-    const CODE_WRONG_FIELD_WHEN_LOGIN = 'ERR400009';
-    const CODE_INTERNAL_ERROR_WHEN_LOGIN = 'EX500004';
-    const CODE_INVALID_PHONE_NUMBER = 'ERR400010';
-    const CODE_INTERNAL_ERROR_WHEN_LOGOUT = 'EX500005';
-    const CODE_PHONE_OR_EMAIL_DUPLICATED = 'ERR400xxx';
-    const CODE_PHONE_OR_EMAIL_NOT_EXIST = 'ERR400xxx';
-    const CODE_WRONG_CURRENT_PASSWORD = 'ERR400xxx';
-    const CODE_CHANGE_PASSWORD_FAIL = 'ERR400xxx';
-    const CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD = 'EX500xxx';
-    const CODE_RET_PASSWORD_FAIL = 'ERR400xxx';
-    const CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD = 'EX500xxx';
+    const CODE_WRONG_FIELD_WHEN_LOGIN = 'ERR400008';
+    const CODE_INTERNAL_ERROR_WHEN_LOGIN = 'EX500003';
+    const CODE_INVALID_PHONE_NUMBER = 'ERR400009';
+    const CODE_INTERNAL_ERROR_WHEN_LOGOUT = 'EX500004';
+    const CODE_PHONE_OR_EMAIL_DUPLICATED = 'ERR400010';
+    const CODE_PHONE_OR_EMAIL_NOT_EXIST = 'ERR400011';
+    const CODE_WRONG_CURRENT_PASSWORD = 'ERR400012';
+    const CODE_CHANGE_PASSWORD_FAIL = 'ERR400013';
+    const CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD = 'EX500005';
+    const CODE_RET_PASSWORD_FAIL = 'ERR400014';
+    const CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD = 'EX500006';
+    const CODE_EMAIL_ADDRESS_EXIST = 'ERR400015';
+    const CODE_REGISTER_FAIL = 'ERR400016';
 
     // Error message
     const MESSAGE_PHONE_NUMBER_EXIST = 'Phone number does exist.';
-    const MESSAGE_NOT_VERIFY_PHONE = 'Phone number must be verifed before register.';
     const MESSAGE_SEND_CODE_FAIL = 'Send verified code failed.';
     const MESSAGE_WAIT_TO_RESEND_CODE = 'Wait 30 seconds to resend verification code.';
     const MESSAGE_SAVE_CODE_TO_DB_FAIL = 'Save verified code to DB failed.';
     const MESSAGE_WRONG_CODE = 'Wrong verification code.';
     const MESSAGE_EXPIRED_CODE = 'Code was expired, resend please.';
     const MESSAGE_VERIFY_CODE_FAIL = 'Verify code failed.';
-    const MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'Must enter phone numer and password when login.';
-    const MESSAGE_WRONG_FIELD_WHEN_LOGIN = 'Phone number or password was wrong.';
+    const MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'Required phone numer or email address and password.';
+    const MESSAGE_WRONG_FIELD_WHEN_LOGIN = 'Phone number/Email address or password was wrong.';
     const MESSAGE_INVALID_PHONE_NUMBER = 'Invalid phone number - cannot send code.';
     const MESSAGE_PHONE_OR_EMAIL_DUPLICATED = 'Email or Phone was duplicated.';
     const MESSAGE_PHONE_OR_EMAIL_NOT_EXIST = 'Email or Phone does not exist.';
-    const MESSAGE_WRONG_CURRENT_PASSWORD = 'Wrong current password.';
-    const MESSAGE_CHANGE_PASSWORD_FAIL = 'Change password fail.';
-    const MESSAGE_RESET_PASSWORD_FAIL = 'Reset password fail.';
+    const MESSAGE_WRONG_CURRENT_PASSWORD = 'Wrong current passworded.';
+    const MESSAGE_CHANGE_PASSWORD_FAIL = 'Change password failed.';
+    const MESSAGE_RESET_PASSWORD_FAIL = 'Reset password failed.';
+    const MESSAGE_EMAIL_ADDRESS_EXIST = 'Email address does exist.';
+    const MESSAGE_REGISTER_FAIL = 'Register failed.';
 
     // Successful code
     const CODE_REGISTER_SUCCESS = 'ST200001';
     const CODE_SEND_CODE_SUCCESS = 'ST200002';
-    const CODE_VERIFY_CODE_SUCESS = 'ST200003';
-    const CODE_LOGIN_SUCCESS = 'ST200004';
-    const CODE_LOGOUT_SUCCESS = 'ST200005';
-    const CODE_CHANGE_PASSWORD_SUCCESS = 'ST200xxx';
-    const CODE_RESET_PASSWORD_SUCCESS = 'ST200xxx';
+    const CODE_LOGIN_SUCCESS = 'ST200003';
+    const CODE_LOGOUT_SUCCESS = 'ST200004';
+    const CODE_CHANGE_PASSWORD_SUCCESS = 'ST200005';
+    const CODE_RESET_PASSWORD_SUCCESS = 'ST200006';
 
     // Successful message
     const MESSAGE_REGISTER_SUCCESS = 'Register successfully.';
     const MESSAGE_SEND_CODE_SUCESS = 'Send verified code successfully.';
-    const MESSAGE_VERIFY_CODE_SUCESS = 'Email/Phone was verfied successfully.';
     const MESSAGE_LOGIN_SUCCESS = 'Login successfully.';
     const MESSAGE_LOGOUT_SUCCESS = 'Logout successfully.';
     const MESSAGE_CHANGE_PASSWORD_SUCCESS = 'Change password successfully.';
@@ -111,7 +107,10 @@ class UserController extends Controller
     public function register(Request $request)
     {
         try {
-            $phone = $request->{User::COL_PHONE};
+            $userId = $request->{User::VAL_USER_ID}; //phone number or email address
+            $code = $request->{User::VAL_CODE};
+            $channel = $request->{User::VAL_CHANNEL}; //phone or email
+
             $name = $request->{User::COL_NAME};
             $password = $request->{User::COL_PASSWORD};
             $confirmPassword = $request->{User::VAL_CONFIRM_PASSWORD};
@@ -119,13 +118,15 @@ class UserController extends Controller
             $birthDay = $request->{User::COL_BIRTHDAY};
 
             $validator = User::validator([
-                User::COL_PHONE => $phone,
+                User::VAL_USER_ID => $userId,
+                User::VAL_CODE => $code,
+                User::VAL_CHANNEL => $channel,
                 User::COL_NAME => $name,
                 User::COL_PASSWORD => $password,
                 User::VAL_CONFIRM_PASSWORD => $confirmPassword,
-                User::COL_GENDER => $gender,
                 User::COL_BIRTHDAY => $birthDay,
-            ]);
+                User::COL_GENDER => $gender,
+            ], $channel);
             if ($validator->fails()) {
                 $response = [
                     self::KEY_CODE => 400,
@@ -134,40 +135,49 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
-            $existUser = User::where(User::COL_PHONE, $phone)->first();
+            $existUser = User::where(User::COL_PHONE, $userId)
+                ->orWhere(User::COL_EMAIL, $userId)->first();
             if ($existUser) {
+                $detailsCode = self::CODE_PHONE_NUMBER_EXIST;
+                $message = self::MESSAGE_PHONE_NUMBER_EXIST;
+                if ($channel === VerifiedCode::EMAIL_CHANNEL) {
+                    $detailsCode = self::CODE_EMAIL_ADDRESS_EXIST;
+                    $message = self::MESSAGE_EMAIL_ADDRESS_EXIST;
+                }
                 $response = [
                     self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_PHONE_NUMBER_EXIST,
-                    self::KEY_MESSAGE => self::MESSAGE_PHONE_NUMBER_EXIST,
-                ];
-                return response()->json($response, 400);
-            }
-            $code = VerifiedCode::where([
-                VerifiedCode::COL_RECEIVER => $phone,
-                VerifiedCode::COL_TYPE => VerifiedCode::REGISTER_TYPE,
-                VerifiedCode::COL_CHANNEL => VerifiedCode::PHONE_CHANNEL,
-            ])->first();
-            if (!($code->{VerifiedCode::COL_WAS_VERIFIED} ?? null)) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_NOT_VERIFY_PHONE,
-                    self::KEY_MESSAGE => self::MESSAGE_NOT_VERIFY_PHONE,
+                    self::KEY_DETAIL_CODE => $detailsCode,
+                    self::KEY_MESSAGE => $message,
                 ];
                 return response()->json($response, 400);
             }
 
+            $verifiedResult = $this->verifyCodeFunction($userId, $code, VerifiedCode::REGISTER_TYPE, $channel);
+            if ($verifiedResult !== true) {
+                return response()->json($verifiedResult, $verifiedResult[self::KEY_CODE]);
+            }
             $dataCreate = [
-                User::COL_PHONE => $phone,
                 User::COL_NAME => $name,
                 User::COL_PASSWORD => bcrypt($password),
-                User::COL_GENDER => $gender,
-                User::COL_BIRTHDAY => $birthDay,
                 User::COL_STATUS => User::ACTIVE_STATUS,
                 User::COL_ROLE_ID => User::CUSTOMER_ROLE_ID,
             ];
+            if ($channel === VerifiedCode::EMAIL_CHANNEL) {
+                $dataCreate[User::COL_EMAIL] = $userId;
+            } else {
+                $dataCreate[User::COL_PHONE] = $userId;
+            }
+
             $user = User::create($dataCreate);
-            $tokenObj = $this->getToken($user->{User::COL_PHONE}, $password);
+            if (!$user) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_REGISTER_FAIL,
+                    self::KEY_MESSAGE => self::MESSAGE_REGISTER_FAIL,
+                ];
+                return response()->json($response, 400);
+            }
+            $tokenObj = $this->getToken($userId, $password);
             $data[User::ACCESS_TOKEN] = $tokenObj->access_token;
             $response = [
                 self::KEY_CODE => 200,
@@ -317,84 +327,6 @@ class UserController extends Controller
     }
 
     /**
-     * @functionName: verifyCode
-     * @type:         public
-     * @param:        Request $request
-     * @return:       String(Json)
-     */
-    public function verifyCode(Request $request, $returnLike = 'api')
-    {
-        try {
-            $input = $request->all();
-            $validator = VerifiedCode::validator($input);
-            if ($validator->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validator->errors(),
-                ];
-                return response()->json($response, 400);
-            }
-            $receiver = $input[VerifiedCode::COL_RECEIVER];
-            $type = $input[VerifiedCode::COL_TYPE];
-            $channel = $input[VerifiedCode::COL_CHANNEL];
-            $code = $input[VerifiedCode::COL_CODE];
-            $conditions = [
-                VerifiedCode::COL_RECEIVER => $receiver,
-                VerifiedCode::COL_TYPE => $type,
-                VerifiedCode::COL_CHANNEL => $channel,
-                VerifiedCode::COL_CODE => $code,
-            ];
-            $existedCode = VerifiedCode::where($conditions)->first();
-            if (!$existedCode) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_WRONG_CODE,
-                    self::KEY_MESSAGE => self::MESSAGE_WRONG_CODE,
-                ];
-                return response()->json($response, 400);
-            }
-            $timeSentCode = $existedCode->{VerifiedCode::COL_CREATED_AT};
-            $timeValidForVerification = $timeSentCode->modify('+ 5 minutes');
-            $now = new DateTime();
-            if ($now > $timeValidForVerification) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_EXPIRED_CODE,
-                    self::KEY_MESSAGE => self::MESSAGE_EXPIRED_CODE,
-                ];
-                return response()->json($response, 400);
-            }
-            $existedCode->{VerifiedCode::COL_WAS_VERIFIED} = VerifiedCode::VERIFIED_STATUS;
-            if (!$existedCode->save()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_VERIFY_CODE_FAIL,
-                    self::KEY_MESSAGE => self::MESSAGE_VERIFY_CODE_FAIL,
-                ];
-                return response()->json($response, 400);
-            }
-            if ($returnLike == 'function') {
-                return true;
-            }
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_VERIFY_CODE_SUCESS,
-                self::KEY_DATA => [],
-                self::KEY_MESSAGE => self::MESSAGE_VERIFY_CODE_SUCESS,
-            ];
-            return response()->json($response, 200);
-        } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_VERIFYING_CODE,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
-        }
-    }
-
-    /**
      * Sends sms to user using Twilio's programmable sms client
      * @param String $message Body of sms
      * @param String $recipients string or array of phone number of recepient
@@ -419,16 +351,16 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        $phone = $request->{User::COL_PHONE};
+        $userId = $request->{User::VAL_USER_ID};
         $password = $request->{User::COL_PASSWORD};
 
         $validator = Validator::make(
             [
-                User::COL_PHONE => $phone,
+                User::VAL_USER_ID => $userId,
                 User::COL_PASSWORD => $password,
             ],
             [
-                User::COL_PHONE => 'required',
+                User::VAL_USER_ID => 'required',
                 User::COL_PASSWORD => 'required',
             ]
         );
@@ -441,7 +373,7 @@ class UserController extends Controller
             return response()->json($response, 400);
         }
 
-        if (!Auth::attempt([User::COL_PHONE => $phone, User::COL_PASSWORD => $password])) {
+        if (!$this->checkLogin($userId, $password)) {
             $response = [
                 self::KEY_CODE => 400,
                 self::KEY_DETAIL_CODE => self::CODE_WRONG_FIELD_WHEN_LOGIN,
@@ -452,7 +384,7 @@ class UserController extends Controller
         try {
             $loginedUser = Auth::user();
             $data = [];
-            $tokenObj = $this->getToken($loginedUser->{User::COL_PHONE}, $password);
+            $tokenObj = $this->getToken($userId, $password);
             $data[self::KEY_TOKEN] = $tokenObj->access_token;
             $data[self::KEY_TOKEN_EXPIRE_IN] = $tokenObj->expires_in;
             $data[self::KEY_REFRESH_TOKEN] = $tokenObj->refresh_token;
@@ -481,6 +413,19 @@ class UserController extends Controller
             ];
             return response()->json($response, 500);
         }
+    }
+
+    private function checkLogin($userId, $password)
+    {
+        $userWithEmail = User::where(User::COL_EMAIL, $userId)->first();
+        if ($userWithEmail) {
+            return Auth::attempt([User::COL_EMAIL => $userId, User::COL_PASSWORD => $password]);
+        }
+        $userWithPhone = User::where(User::COL_PHONE, $userId)->first();
+        if ($userWithPhone) {
+            return Auth::attempt([User::COL_PHONE => $userId, User::COL_PASSWORD => $password]);
+        }
+        return false;
     }
 
     private function getToken($email, $password)
@@ -607,6 +552,7 @@ class UserController extends Controller
             $receiver = $request->{User::VAL_RECEIVER};
             $code = $request->{User::VAL_CODE};
             $channel = $request->{User::VAL_CHANNEL};
+
             $newPassword = $request->{User::VAL_NEW_PASSWORD};
             $confirmNewPassword = $request->{User::VAL_CONFIRM_NEW_PASSWORD};
 
@@ -625,8 +571,10 @@ class UserController extends Controller
                 ];
                 return response()->json($response, 400);
             }
-            $request[User::VAL_TYPE] = VerifiedCode::RESET_PASSWORD_TYPE;
-            $this->verifyCode($request, 'function');
+            $rs = $this->verifyCodeFunction($receiver, $code, VerifiedCode::RESET_PASSWORD_TYPE, $channel);
+            if ($rs !== true) {
+                return response()->json($rs, $rs[self::KEY_CODE]);
+            }
 
             $userNameType = User::COL_PHONE;
             if ($channel === VerifiedCode::EMAIL_CHANNEL) {
@@ -659,5 +607,45 @@ class UserController extends Controller
             ];
             return response()->json($response, 500);
         }
+    }
+
+    private function verifyCodeFunction($receiver, $code, $type, $channel)
+    {
+        $conditions = [
+            VerifiedCode::COL_RECEIVER => $receiver,
+            VerifiedCode::COL_TYPE => $type,
+            VerifiedCode::COL_CHANNEL => $channel,
+            VerifiedCode::COL_CODE => $code,
+        ];
+        $existedCode = VerifiedCode::where($conditions)->first();
+        if (!$existedCode) {
+            $response = [
+                self::KEY_CODE => 400,
+                self::KEY_DETAIL_CODE => self::CODE_WRONG_CODE,
+                self::KEY_MESSAGE => self::MESSAGE_WRONG_CODE,
+            ];
+            return $response;
+        }
+        $timeSentCode = $existedCode->{VerifiedCode::COL_CREATED_AT};
+        $timeValidForVerification = $timeSentCode->modify('+ 5 minutes');
+        $now = new DateTime();
+        if ($now > $timeValidForVerification) {
+            $response = [
+                self::KEY_CODE => 400,
+                self::KEY_DETAIL_CODE => self::CODE_EXPIRED_CODE,
+                self::KEY_MESSAGE => self::MESSAGE_EXPIRED_CODE,
+            ];
+            return $response;
+        }
+        $existedCode->{VerifiedCode::COL_WAS_VERIFIED} = VerifiedCode::VERIFIED_STATUS;
+        if (!$existedCode->save()) {
+            $response = [
+                self::KEY_CODE => 400,
+                self::KEY_DETAIL_CODE => self::CODE_VERIFY_CODE_FAIL,
+                self::KEY_MESSAGE => self::MESSAGE_VERIFY_CODE_FAIL,
+            ];
+            return $response;
+        }
+        return true;
     }
 }
