@@ -43,6 +43,7 @@ class User extends Authenticatable
     const VAL_TYPE = 'type';
     const VAL_CHANNEL = 'channel';
     const VAL_RECEIVER = 'receiver';
+    const VAL_USER_ID = 'userId';
 
     // Value
     const ADMIN_ROLE_ID = 3;
@@ -129,13 +130,14 @@ class User extends Authenticatable
             self::VAL_CONFIRM_NEW_PASSWORD => 'required|same:' . self::VAL_NEW_PASSWORD,
             self::VAL_CURRENT_PASSWORD => 'required',
             self::COL_GENDER => 'nullable|numeric',
-            self::COL_BIRTHDAY => 'required',
+            self::COL_BIRTHDAY => 'nullable|before_or_equal:'.\Carbon\Carbon::now()->subYears(10)->format('Y-m-d'),
             self::COL_STATUS => 'required|numeric',
             self::COL_ROLE_ID => 'required|numeric',
             self::COL_STORE_ID => 'nullable|numeric',
             self::VAL_TYPE => 'required|numeric|between:0,1',
             self::VAL_CHANNEL => 'required|numeric|between:0,1',
             self::VAL_RECEIVER => $receiverRules,
+            self::VAL_USER_ID => $receiverRules,
         ];
         $errorCode = [
             'required' => ':attribute is required.',
@@ -147,8 +149,8 @@ class User extends Authenticatable
         return CommonModel::validate($data, $validatedFields, $errorCode);
     }
 
-    public function findForPassport($phoneNumber)
+    public function findForPassport($userId)
     {
-        return $this->where(self::COL_PHONE, $phoneNumber)->first();
+        return $this->where(self::COL_PHONE, $userId)->orWhere(self::COL_EMAIL, $userId)->first();
     }
 }
