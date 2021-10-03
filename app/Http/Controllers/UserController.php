@@ -162,7 +162,7 @@ class UserController extends Controller
                 User::COL_STATUS => User::ACTIVE_STATUS,
                 User::COL_ROLE_ID => User::CUSTOMER_ROLE_ID,
             ];
-            if ($channel === VerifiedCode::EMAIL_CHANNEL) {
+            if ($channel == VerifiedCode::EMAIL_CHANNEL) {
                 $dataCreate[User::COL_EMAIL] = $userId;
             } else {
                 $dataCreate[User::COL_PHONE] = $userId;
