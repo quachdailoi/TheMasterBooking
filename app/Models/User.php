@@ -115,7 +115,7 @@ class User extends Authenticatable
     {
         $mailRules = 'required|email:rfc,filter';
         $phoneRules = 'required|numeric';
-        if ($receiverChannel === VerifiedCode::EMAIL_CHANNEL) {
+        if ($receiverChannel == VerifiedCode::EMAIL_CHANNEL) {
             $receiverRules = $mailRules;
         } else {
             $receiverRules = $phoneRules;
