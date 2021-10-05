@@ -116,7 +116,7 @@ class User extends Authenticatable
      */
     public function getAvatarAttribute()
     {
-        $avatarUrl = $this->file()->{File::COL_PATH};
+        $avatarUrl = $this->file()->{File::COL_PATH} ?? getenv('DEFAULT_USER_AVATAR_URL');
         return $avatarUrl;
     }
 
