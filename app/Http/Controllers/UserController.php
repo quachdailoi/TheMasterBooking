@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CommonModel;
+use App\Models\File;
 use App\Models\User;
 use App\Models\VerifiedCode;
 use Carbon\Carbon;
@@ -25,6 +26,8 @@ class UserController extends Controller
     const API_URL_LOGOUT = '/authentication/logout';
     const API_URL_CHANGE_PASSWORD = '/authentication/change-password';
     const API_URL_RESET_PASSWORD = '/authentication/reset-password';
+    const API_URL_GET_USER_PROFILE = '/user/get-profile';
+    const API_URL_UPDATE_USER_PROFILE = '/user/update-profile';
 
     /** Method */
     const METHOD_LOGIN = 'login';
@@ -33,6 +36,8 @@ class UserController extends Controller
     const METHOD_LOGOUT = 'logout';
     const METHOD_CHANGE_PASSWORD = 'changePassword';
     const METHOD_RESET_PASSWORD = 'resetPassword';
+    const METHOD_GET_PROFILE = 'getProfile';
+    const METHOD_UPDATE_PROFILE = 'updateProfile';
 
     // type of verified code
     const TYPE_REGISTER = '0';
@@ -62,6 +67,9 @@ class UserController extends Controller
     const CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD = 'EX500006';
     const CODE_EMAIL_ADDRESS_EXIST = 'ERR400015';
     const CODE_REGISTER_FAIL = 'ERR400016';
+    const CODE_INTERNAL_ERROR_WHEN_GETTING_USER_PROFILE = 'EX500007';
+    const CODE_UPDATE_USER_PROFILE_FAIL = 'ERR400xxx';
+    const CODE_INTERNAL_ERROR_WHEN_UPDATING_USER_PROFILE = 'EX500008';
 
     // Error message
     const MESSAGE_PHONE_NUMBER_EXIST = 'Phone number does exist.';
@@ -81,6 +89,7 @@ class UserController extends Controller
     const MESSAGE_RESET_PASSWORD_FAIL = 'Reset password failed.';
     const MESSAGE_EMAIL_ADDRESS_EXIST = 'Email address does exist.';
     const MESSAGE_REGISTER_FAIL = 'Register failed.';
+    const MESSAGE_UPDATE_USER_PROFILE_FAIL = 'Update user profile failed.';
 
     // Successful code
     const CODE_REGISTER_SUCCESS = 'ST200001';
@@ -89,6 +98,8 @@ class UserController extends Controller
     const CODE_LOGOUT_SUCCESS = 'ST200004';
     const CODE_CHANGE_PASSWORD_SUCCESS = 'ST200005';
     const CODE_RESET_PASSWORD_SUCCESS = 'ST200006';
+    const CODE_GET_USER_PROFILE_SUCCESS = 'ST200007';
+    const CODE_UPDATE_USER_PROFILE_SUCCESS = 'ST200008';
 
     // Successful message
     const MESSAGE_REGISTER_SUCCESS = 'Register successfully.';
@@ -97,6 +108,8 @@ class UserController extends Controller
     const MESSAGE_LOGOUT_SUCCESS = 'Logout successfully.';
     const MESSAGE_CHANGE_PASSWORD_SUCCESS = 'Change password successfully.';
     const MESSAGE_RESET_PASSWORD_SUCCESS = 'Reset password successfully.';
+    const MESSAGE_GET_USER_PROFILE_SUCCESS = 'Get user profile successfully.';
+    const MESSAGE_UPDATE_USER_PROFILE_SUCCESS = 'Update user profile successfully.';
 
     /**
      * @functionName: register
@@ -162,7 +175,7 @@ class UserController extends Controller
                 User::COL_STATUS => User::ACTIVE_STATUS,
                 User::COL_ROLE_ID => User::CUSTOMER_ROLE_ID,
             ];
-            if ($channel === VerifiedCode::EMAIL_CHANNEL) {
+            if ($channel == VerifiedCode::EMAIL_CHANNEL) {
                 $dataCreate[User::COL_EMAIL] = $userId;
             } else {
                 $dataCreate[User::COL_PHONE] = $userId;
@@ -390,14 +403,7 @@ class UserController extends Controller
             $data[self::KEY_REFRESH_TOKEN] = $tokenObj->refresh_token;
             $data[self::KEY_REFRESH_TOKEN_EXPIRE_IN] = Carbon::now()->addDay(30)->diffInSeconds();
 
-            $userData = [
-                User::COL_NAME => $loginedUser->{User::COL_NAME},
-                User::COL_EMAIL => $loginedUser->{User::COL_EMAIL},
-                User::COL_PHONE => $loginedUser->{User::COL_PHONE},
-                User::COL_ROLE_ID => $loginedUser->{User::COL_ROLE_ID},
-            ];
-
-            $data['user'] = $userData;
+            $data['user'] = $loginedUser;
             $response = [
                 self::KEY_CODE => 200,
                 self::KEY_DETAIL_CODE => self::CODE_LOGIN_SUCCESS,
@@ -647,5 +653,94 @@ class UserController extends Controller
             return $response;
         }
         return true;
+    }
+
+    /**
+     * @functionName: getProfile
+     * @type:         public
+     * @param:        empty
+     * @return:       String(Json)
+     */
+    public function getProfile()
+    {
+        try {
+            $currentUser= Auth::user();
+
+            $response = [
+                self::KEY_CODE => 200,
+                self::KEY_DETAIL_CODE => self::CODE_GET_USER_PROFILE_SUCCESS,
+                self::KEY_DATA => $currentUser,
+                self::KEY_MESSAGE => self::MESSAGE_GET_USER_PROFILE_SUCCESS,
+            ];
+            return response()->json($response, 200);
+        } catch (Exception $ex) {
+            $response = [
+                self::KEY_CODE => 500,
+                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_GETTING_USER_PROFILE,
+                self::KEY_MESSAGE => $ex->getMessage(),
+            ];
+            return response()->json($response, 500);
+        }
+    }
+
+    /**
+     * @functionName: getProfile
+     * @type:         public
+     * @param:        Request $request
+     * @return:       String(Json)
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            $data = [
+                User::COL_NAME => $request->{User::COL_NAME},
+                User::COL_GENDER => $request->{User::COL_GENDER},
+                User::COL_BIRTHDAY => $request->{User::COL_BIRTHDAY},
+                User::VAL_AVATAR => $request->{User::VAL_AVATAR},
+            ];
+            $validate = User::validator($data);
+            if ($validate->fails()) {
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
+                    self::KEY_MESSAGE => $validate->errors()->first(),
+                ];
+                return response()->json($response, 400);
+            }
+            DB::beginTransaction();
+            $currentUser = Auth::user();
+            $currentUser->{User::COL_NAME} = $data[User::COL_NAME];
+            $currentUser->{User::COL_GENDER} = $data[User::COL_GENDER];
+            $currentUser->{User::COL_BIRTHDAY} = $data[User::COL_BIRTHDAY];
+            $rs1 = $currentUser->save();
+
+            $rs2 = ($currentUser->{User::VAL_AVATAR} = $data[User::VAL_AVATAR]);
+
+            if (!$rs1 or !$rs2) {
+                DB::rollBack();
+                $response = [
+                    self::KEY_CODE => 400,
+                    self::KEY_DETAIL_CODE => self::CODE_UPDATE_USER_PROFILE_FAIL,
+                    self::KEY_MESSAGE => self::MESSAGE_UPDATE_USER_PROFILE_FAIL,
+                ];
+                return response()->json($response, 400);
+            }
+            DB::commit();
+            $response = [
+                self::KEY_CODE => 200,
+                self::KEY_DETAIL_CODE => self::CODE_UPDATE_USER_PROFILE_SUCCESS,
+                self::KEY_DATA => $currentUser,
+                self::KEY_MESSAGE => self::MESSAGE_UPDATE_USER_PROFILE_SUCCESS,
+            ];
+            return response()->json($response, 200);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            $response = [
+                self::KEY_CODE => 500,
+                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_UPDATING_USER_PROFILE,
+                self::KEY_MESSAGE => $ex->getMessage(),
+            ];
+            return response()->json($response, 500);
+        }
     }
 }
