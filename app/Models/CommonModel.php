@@ -13,6 +13,7 @@ class CommonModel extends Model
     use SoftDeletes;
 
     /** Common column */
+    const COL_ID = 'id';
     const COL_CREATED_AT = 'created_at';
     const COL_UPDATED_AT = 'updated_at';
     const COL_DELETED_AT = 'deleted_at';

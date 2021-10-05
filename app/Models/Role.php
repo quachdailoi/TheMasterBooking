@@ -12,7 +12,6 @@ class Role extends CommonModel
     protected $table = 'roles';
 
     /** Column of table */
-    const COL_ID = 'id';
     const COL_NAME = 'name';
 
     /**

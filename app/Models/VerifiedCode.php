@@ -12,7 +12,6 @@ class VerifiedCode extends CommonModel
     protected $table = 'verified_codes';
 
     /** Column of table */
-    const COL_ID = 'id';
     const COL_RECEIVER = 'receiver';
     const COL_CODE = 'code';
     const COL_TYPE = 'type';

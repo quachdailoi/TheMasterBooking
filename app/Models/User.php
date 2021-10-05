@@ -44,6 +44,7 @@ class User extends Authenticatable
     const VAL_CHANNEL = 'channel';
     const VAL_RECEIVER = 'receiver';
     const VAL_USER_ID = 'userId';
+    const VAL_AVATAR = 'avatar';
 
     // Value
     const ADMIN_ROLE_ID = 3;
@@ -51,6 +52,9 @@ class User extends Authenticatable
     const CUSTOMER_ROLE_ID = 1;
     const ACTIVE_STATUS = 1;
     const UNACTIVE_STATUS = 0;
+
+    /** relation function */
+    const FILE_RELATIONSHIP = 'file';
 
     // message path
     const MESSAGE_PATH = '/messages/user.';
@@ -96,6 +100,45 @@ class User extends Authenticatable
         self::COL_EMAIL_VERIFIED_AT => 'datetime',
         self::COL_PHONE_VERIFIED_AT => 'datetime',
     ];
+
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['avatar'];
+
+    /**
+     * Get the user's avatar.
+     *
+     * @return string
+     */
+    public function getAvatarAttribute()
+    {
+        $avatarUrl = $this->file()->{File::COL_PATH};
+        return $avatarUrl;
+    }
+
+    /**
+     * Set the user's avatar.
+     *
+     * @return string
+     */
+    public function setAvatarAttribute($filePath, $status = 1)
+    {
+        return File::updateOrCreate(
+            [
+                File::COL_OWNER_TYPE => User::class,
+                File::COL_OWNER_ID => $this->getAttribute(self::COL_ID),
+            ],
+            [
+                File::COL_TYPE => File::IMAGE_TYPE,
+                File::COL_PATH => $filePath,
+                File::COL_STATUS => $status,
+            ]
+        );
+    }
 
     public static function getTableName()
     {
@@ -152,5 +195,13 @@ class User extends Authenticatable
     public function findForPassport($userId)
     {
         return $this->where(self::COL_PHONE, $userId)->orWhere(self::COL_EMAIL, $userId)->first();
+    }
+
+    /**
+     * Get the user's file.
+     */
+    public function file()
+    {
+        return $this->morphOne(File::class, 'owner')->first();
     }
 }

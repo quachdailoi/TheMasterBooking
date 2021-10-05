@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\UserController;
+use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,12 @@ Route::post(UserController::API_URL_SEND_CODE_TO, [UserController::class, UserCo
 Route::post(UserController::API_URL_RESET_PASSWORD, [UserController::class, UserController::METHOD_RESET_PASSWORD]);
 
 Route::group(['middleware' => 'auth:api'], function () {
+    // User - Authentication
     Route::get(UserController::API_URL_LOGOUT, [UserController::class, UserController::METHOD_LOGOUT]);
     Route::post(UserController::API_URL_CHANGE_PASSWORD, [UserController::class, UserController::METHOD_CHANGE_PASSWORD]);
+    Route::get(UserController::API_URL_GET_USER_PROFILE, [UserController::class, UserController::METHOD_GET_PROFILE]);
+    Route::post(UserController::API_URL_UPDATE_USER_PROFILE, [UserController::class, UserController::METHOD_UPDATE_PROFILE]);
+
+    // File
+    Route::post(FileController::API_URL_UPLOAD_FILE_S3, [FileController::class, FileController::METHOD_UPLOAD_FILE_S3]);
 });
