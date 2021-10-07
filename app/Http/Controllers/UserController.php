@@ -696,7 +696,6 @@ class UserController extends Controller
                 User::COL_NAME => $request->{User::COL_NAME},
                 User::COL_GENDER => $request->{User::COL_GENDER},
                 User::COL_BIRTHDAY => $request->{User::COL_BIRTHDAY},
-                User::VAL_AVATAR => $request->{User::VAL_AVATAR},
             ];
             $validate = User::validator($data);
             if ($validate->fails()) {
@@ -714,9 +713,7 @@ class UserController extends Controller
             $currentUser->{User::COL_BIRTHDAY} = $data[User::COL_BIRTHDAY];
             $rs1 = $currentUser->save();
 
-            $rs2 = ($currentUser->{User::VAL_AVATAR} = $data[User::VAL_AVATAR]);
-
-            if (!$rs1 or !$rs2) {
+            if (!$rs1) {
                 DB::rollBack();
                 $response = [
                     self::KEY_CODE => 400,
