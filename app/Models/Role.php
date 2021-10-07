@@ -14,6 +14,11 @@ class Role extends CommonModel
     /** Column of table */
     const COL_NAME = 'name';
 
+    /** Role Type */
+    const ADMIN_ROLE = 3;
+    const MANAGER_ROLE = 2;
+    const CUSTOMER_ROLE = 1;
+
     /**
      * The attributes that are mass assignable.
      *

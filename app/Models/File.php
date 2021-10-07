@@ -25,6 +25,7 @@ class File extends CommonModel
     const VAL_FILE_ID = 'fileId';
     const VAL_IMAGE_FILE = 'imageFile';
     const VAL_FILE = 'file';
+    const VAL_INDEX = 'index';
 
     /** file type */
     const IMAGE_TYPE = 0;
@@ -44,10 +45,42 @@ class File extends CommonModel
 
     /** owner file type */
     const USER_TYPE = 'user';
+    const PRODUCT_TYPE = 'product';
+    const SERVICE_TYPE = 'service';
+    const STORE_TYPE = 'store';
 
     /** Owner types */
     const OWNER_TYPE_MODELS = [
         File::USER_TYPE => User::class,
+        File::PRODUCT_TYPE => '',
+        File::SERVICE_TYPE => '',
+        File::STORE_TYPE => '',
+    ];
+
+    /** Owner type right for custmer */
+    const CUSTOMER_ONWNER_TYPE_RIGHT = [
+        File::USER_TYPE => true,
+    ];
+
+    /** Owner type right for manager */
+    const MANAGER_OWNER_TYPE_RIGHT = [
+        File::PRODUCT_TYPE => true,
+        File::SERVICE_TYPE => true,
+        FIle::STORE_TYPE => true,
+    ];
+
+    /** Owner type right for admin */
+    const ADMIN_OWNER_TYPE_RIGHT = [
+        File::USER_TYPE => true,
+        File::PRODUCT_TYPE => true,
+        File::SERVICE_TYPE => true,
+        FIle::STORE_TYPE => true,
+    ];
+
+    const OWNER_TYPE_RIGHT = [
+        Role::CUSTOMER_ROLE => self::CUSTOMER_ONWNER_TYPE_RIGHT,
+        Role::MANAGER_ROLE => self::MANAGER_OWNER_TYPE_RIGHT,
+        Role::ADMIN_ROLE => self::ADMIN_OWNER_TYPE_RIGHT,
     ];
 
     /**
@@ -102,6 +135,8 @@ class File extends CommonModel
             self::COL_PATH => 'required',
             self::COL_STATUS => 'nullable|numeric|between:0,1',
             self::COL_TYPE => 'required|numeric|between:0,2',
+            self::VAL_INDEX => 'nullable|numeric',
+            self::VAL_FILE_ID => 'nullable|numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',

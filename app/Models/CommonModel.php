@@ -19,7 +19,6 @@ class CommonModel extends Model
     const COL_DELETED_AT = 'deleted_at';
 
     const INVALID_FIELD_CODE = 'INVALID_FIELD';
-    const COMMON_MESSAGE_PATH = 'messages/common.';
 
     public static function getTableName()
     {
