@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
@@ -55,12 +56,6 @@ class User extends Authenticatable
 
     /** relation function */
     const FILE_RELATIONSHIP = 'file';
-
-    // message path
-    const MESSAGE_PATH = '/messages/user.';
-
-    // IER code
-    const IER400 = 'IER400001';
 
     /**
      * The attributes that are mass assignable.

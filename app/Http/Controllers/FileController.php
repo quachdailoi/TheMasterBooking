@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\File;
+use App\Models\Role;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -45,17 +46,39 @@ class FileController extends Controller
     const MESSAGE_GET_PRESIGN_URL_SUCCESS = 'Get pre-signed url successfully.';
     const MESSAGE_UPLOAD_FILE_SUCCESS = 'Upload file successfully.';
 
+    /** Send file option for relations */
+    const OPTION_1_1 = '1-1';
+
     /**
      * @functionName: saveFile
      * @type:         public
      * @param:        somes
-     * @return:       array
+     * @return:       object|array
      */
-    public function saveFileToDB($path, $type, $ownerTypeModel, $ownerId, $status = File::ACTIVE_TYPE, $fileId = null)
+    public function saveFileToDB($path, $type, $ownerTypeModel, $ownerId, $fileId = null, $option = self::OPTION_1_1)
     {
         try {
-            $savedResult = false;
-            if (!$fileId) { // create new
+            if (!$fileId or empty($fileId)) {
+                if ($option == self::OPTION_1_1) {
+                    $dataForUpdate = File::where(File::COL_OWNER_TYPE, $ownerTypeModel)
+                        ->where(File::COL_OWNER_ID, $ownerId)->get();
+                    if (!$dataForUpdate->isEmpty()) {
+                        if (count($dataForUpdate) == 1) {
+                            $dataForUpdate = $dataForUpdate->first();
+                            $dataForUpdate->{File::COL_PATH} = $path;
+                            if (!$dataForUpdate->save()) {
+                                return [
+                                    self::KEY_CODE => 400,
+                                    self::KEY_DETAIL_CODE => self::CODE_SAVE_FILE_TO_DB_FAIL,
+                                    self::KEY_MESSAGE => self::MESSAGE_SAVE_FILE_TO_DB_FAIL,
+                                ];
+                            }
+                            return $dataForUpdate;
+                        } else {
+                            //...
+                        }
+                    }
+                }
                 $dataForCreate = [
                     File::COL_PATH => $path,
                     File::COL_OWNER_ID => $ownerId,
@@ -63,7 +86,6 @@ class FileController extends Controller
                     File::COL_TYPE => $type,
                 ];
                 $savedModel = File::create($dataForCreate);
-                $savedResult = (bool) $savedModel;
             } else { //update
                 $file = File::find($fileId);
                 if (!$file) {
@@ -77,12 +99,10 @@ class FileController extends Controller
                 $file->{File::COL_TYPE} = $type;
                 $file->{File::COL_OWNER_ID} = $ownerId;
                 $file->{File::COL_OWNER_TYPE} = $ownerTypeModel;
-                $file->{File::COL_STATUS} = $status;
 
                 $savedModel = $file->save();
-                $savedResult = (bool) $savedModel;
             }
-            if (!$savedResult) {
+            if (!$savedModel) {
                 return [
                     self::KEY_CODE => 400,
                     self::KEY_DETAIL_CODE => self::CODE_SAVE_FILE_TO_DB_FAIL,
@@ -90,7 +110,7 @@ class FileController extends Controller
                 ];
             }
 
-            return true;
+            return $savedModel;
         } catch (Exception $ex) {
             return [
                 self::KEY_CODE => 500,
@@ -155,17 +175,16 @@ class FileController extends Controller
         $type = $request->{File::COL_TYPE};
         $ownerType = $request->{File::VAL_OWNER_TYPE};
         $ownerId = $request->{File::VAL_OWNER_ID};
-        $status = $request->{File::COL_STATUS};
+        $index = $request->{File::VAL_INDEX};
 
         $file = $request->{File::VAL_FILE};
 
         try {
             $validator = File::validator([
-                File::VAL_FILE_ID => $fileId,
+                File::VAL_INDEX => $index,
                 File::COL_TYPE => $type,
                 File::VAL_OWNER_TYPE => $ownerType,
                 File::VAL_OWNER_ID => $ownerId,
-                File::COL_STATUS => $status,
             ]);
             if ($validator->fails()) {
                 $response = [
@@ -197,7 +216,8 @@ class FileController extends Controller
                 return response()->json($response, 400);
             }
             $checkOwnerFile = $this->checkOwnerOfFile($ownerType, $ownerId);
-            if (!$checkOwnerFile) {
+            $haveRightChange = $this->checkRight($ownerType);
+            if (!$checkOwnerFile or !$haveRightChange) {
                 $response = [
                     self::KEY_CODE => 400,
                     self::KEY_DETAIL_CODE => self::CODE_NO_RIGHT_FOR_CHANGE_FILE,
@@ -205,28 +225,28 @@ class FileController extends Controller
                 ];
                 return response()->json($response, 400);
             }
-            if ($fileId) { // update -> delete file
-                $fileDBModel = File::where(File::COL_ID, $fileId)
-                    ->where(File::COL_OWNER_ID, $ownerId)
-                    ->where(File::COL_OWNER_TYPE, $ownerTypeModel)->first();
-                if (!$fileDBModel) {
-                    $response = [
-                        self::KEY_CODE => 400,
-                        self::KEY_DETAIL_CODE => self::CODE_NOT_FOUND_FILE_OF_OWNER,
-                        self::KEY_MESSAGE => self::MESSAGE_NOT_FOUND_FILE_OF_OWNER,
-                    ];
-                    return response()->json($response, 400);
-                }
-                $this->deleteFile($fileDBModel->{File::COL_PATH});
+
+            $fileFolder = $ownerType.'s/';
+            $fileName = $ownerType.'_'.$ownerId;
+            if ($index) {
+                $fileName = $fileName.'_'.$index;
             }
-            $fileFolder = $ownerType . 's/';
-            $fileName = $ownerType . '_' . $ownerId . '.' . $file->extension();
             $fullPath = $this->uploadFile($file, $fileName, $fileFolder);
+
+            $rsSaveToDB = $this->saveFileToDB($fullPath, $type, $ownerTypeModel, $ownerId, $fileId);
+            if (gettype($rsSaveToDB) == 'array') {
+                return response()->json($rsSaveToDB, $rsSaveToDB[self::KEY_CODE]);
+            }
+            $fileId = $rsSaveToDB->{File::COL_ID};
+            $dataResponse = [
+                'path' => $fullPath,
+                'fileId' => $fileId,
+            ];
 
             $response = [
                 self::KEY_CODE => 200,
                 self::KEY_DETAIL_CODE => self::CODE_UPLOAD_FILE_SUCCESS,
-                self::KEY_DATA => $fullPath,
+                self::KEY_DATA => $dataResponse,
                 self::KEY_MESSAGE => self::MESSAGE_UPLOAD_FILE_SUCCESS,
             ];
             return response()->json($response, 200);
@@ -261,5 +281,12 @@ class FileController extends Controller
             }
         }
         return true;
+    }
+
+    private function checkRight($ownerType)
+    {
+        $currentUser = Auth::user();
+        $right = File::OWNER_TYPE_RIGHT[$currentUser->{User::COL_ROLE_ID}][$ownerType] ?? false;
+        return $right;
     }
 }
