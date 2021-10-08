@@ -22,4 +22,55 @@ class Controller extends BaseController
     const KEY_REFRESH_TOKEN_EXPIRE_IN = 'refreshTokenExpireIn';
 
     const CODE_INVALID_FIELD = 'IER400001';
+
+    public static function responseST($detailsCode, $message, $data = [])
+    {
+        $response = [
+            self::KEY_CODE => 200,
+            self::KEY_DETAIL_CODE => $detailsCode,
+            self::KEY_DATA => $data,
+            self::KEY_MESSAGE => $message,
+        ];
+        return response()->json($response, 200);
+    }
+    public static function responseIER($message, $detailsCode = self::CODE_INVALID_FIELD)
+    {
+        $response = [
+            self::KEY_CODE => 400,
+            self::KEY_DETAIL_CODE => $detailsCode,
+            self::KEY_MESSAGE => $message,
+        ];
+        return response()->json($response, 400);
+    }
+    public static function responseEX($detailsCode, $message)
+    {
+        $response = [
+            self::KEY_CODE => 500,
+            self::KEY_DETAIL_CODE => $detailsCode,
+            self::KEY_MESSAGE => $message,
+        ];
+        return response()->json($response, 500);
+    }
+    public static function responseERR($detailsCode, $message)
+    {
+        $response = [
+            self::KEY_CODE => 400,
+            self::KEY_DETAIL_CODE => $detailsCode,
+            self::KEY_MESSAGE => $message,
+        ];
+        return response()->json($response, 400);
+    }
+    public static function responseCommon($code, $detailsCode, $message)
+    {
+        $response = [
+            self::KEY_CODE => $code,
+            self::KEY_DETAIL_CODE => $detailsCode,
+            self::KEY_MESSAGE => $message,
+        ];
+        return response()->json($response, $code);
+    }
+    public static function responseObject($response)
+    {
+        return response()->json($response, $response[self::KEY_CODE] ?? 400);
+    }
 }
