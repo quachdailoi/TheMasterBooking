@@ -141,12 +141,7 @@ class UserController extends Controller
                 User::COL_GENDER => $gender,
             ], $channel);
             if ($validator->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validator->errors()->first(),
-                ];
-                return response()->json($response, 400);
+                return self::responseIER($validator->errors()->first());
             }
             $existUser = User::where(User::COL_PHONE, $userId)
                 ->orWhere(User::COL_EMAIL, $userId)->first();
@@ -157,17 +152,12 @@ class UserController extends Controller
                     $detailsCode = self::CODE_EMAIL_ADDRESS_EXIST;
                     $message = self::MESSAGE_EMAIL_ADDRESS_EXIST;
                 }
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => $detailsCode,
-                    self::KEY_MESSAGE => $message,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR($detailsCode, $message);
             }
 
             $verifiedResult = $this->verifyCodeFunction($userId, $code, VerifiedCode::REGISTER_TYPE, $channel);
             if ($verifiedResult !== true) {
-                return response()->json($verifiedResult, $verifiedResult[self::KEY_CODE]);
+                return self::responseObject($verifiedResult);
             }
             $dataCreate = [
                 User::COL_NAME => $name,
@@ -183,29 +173,13 @@ class UserController extends Controller
 
             $user = User::create($dataCreate);
             if (!$user) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_REGISTER_FAIL,
-                    self::KEY_MESSAGE => self::MESSAGE_REGISTER_FAIL,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_REGISTER_FAIL, self::MESSAGE_REGISTER_FAIL);
             }
             $tokenObj = $this->getToken($userId, $password);
             $data[User::ACCESS_TOKEN] = $tokenObj->access_token;
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_REGISTER_SUCCESS,
-                self::KEY_DATA => $data,
-                self::KEY_MESSAGE => self::MESSAGE_REGISTER_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_REGISTER_SUCCESS, self::MESSAGE_REGISTER_SUCCESS, $data);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_REGISTERING,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_REGISTERING, $ex->getMessage());
         }
     }
 
@@ -215,12 +189,7 @@ class UserController extends Controller
             $input = $request->all();
             $validator = VerifiedCode::validator($input);
             if ($validator->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validator->errors()->first(),
-                ];
-                return response()->json($response, 400);
+                return self::responseIER($validator->errors()->first());
             }
             $receiver = $input[VerifiedCode::COL_RECEIVER];
             $type = $input[VerifiedCode::COL_TYPE];
@@ -239,44 +208,23 @@ class UserController extends Controller
             if (!$verifiedCode) {
                 $verifiedCode = VerifiedCode::create(array_merge($conditions, [VerifiedCode::COL_CODE => $code]));
                 if (!$verifiedCode) {
-                    $response = [
-                        self::KEY_CODE => 400,
-                        self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_FAIL,
-                        self::KEY_MESSAGE => self::MESSAGE_SEND_CODE_FAIL,
-                    ];
-                    return response()->json($response, 400);
+                    return self::responseERR(self::CODE_SEND_CODE_FAIL, self::MESSAGE_SEND_CODE_FAIL);
                 }
                 // send code to email or phone->
                 $this->sendBy($channel, $receiver, $code);
-                $response = [
-                    self::KEY_CODE => 200,
-                    self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_SUCCESS,
-                    self::KEY_DATA => $code,
-                    self::KEY_MESSAGE => self::MESSAGE_SEND_CODE_SUCESS,
-                ];
-                return response()->json($response, 200);
+                return self::responseST(self::CODE_SEND_CODE_SUCCESS, self::MESSAGE_SEND_CODE_SUCESS, $code);
             }
             $timeSentCode = $verifiedCode->{VerifiedCode::COL_CREATED_AT};
             $now = new DateTime();
             $timeValid = $timeSentCode->modify('+ 30 seconds');
             if ($now < $timeValid) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_WAIT_TO_RESEND_CODE,
-                    self::KEY_MESSAGE => self::MESSAGE_WAIT_TO_RESEND_CODE,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_WAIT_TO_RESEND_CODE, self::MESSAGE_WAIT_TO_RESEND_CODE);
             }
             $verifiedCode->{VerifiedCode::COL_CODE} = $code;
             $verifiedCode->{VerifiedCode::COL_CREATED_AT} = Carbon::now();
             $verifiedCode->{VerifiedCode::COL_WAS_VERIFIED} = VerifiedCode::NOT_VERIFY_STATUS;
             if (!$verifiedCode->save()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_SAVE_CODE_TO_DB_FAIL,
-                    self::KEY_MESSAGE => self::MESSAGE_SAVE_CODE_TO_DB_FAIL,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_SAVE_CODE_TO_DB_FAIL, self::MESSAGE_SAVE_CODE_TO_DB_FAIL);
             }
             $this->sendBy($channel, $receiver, $code);
             $response = [
@@ -285,22 +233,12 @@ class UserController extends Controller
                 self::KEY_DATA => $code,
                 self::KEY_MESSAGE => self::MESSAGE_SEND_CODE_SUCESS,
             ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_SEND_CODE_SUCCESS, self::MESSAGE_SEND_CODE_SUCESS, $code);
         } catch (Exception $ex) {
             if (str_contains($ex->getMessage(), '[HTTP 400] Unable to create record')) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_PHONE_NUMBER,
-                    self::KEY_MESSAGE => self::MESSAGE_INVALID_PHONE_NUMBER,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_INVALID_PHONE_NUMBER, self::MESSAGE_INVALID_PHONE_NUMBER);
             }
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_SENDING_CODE,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_SENDING_CODE, $ex->getMessage());
         }
     }
 
@@ -378,21 +316,11 @@ class UserController extends Controller
             ]
         );
         if ($validator->fails()) {
-            $response = [
-                self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_MUST_ENTER_FIELDS_WHEN_LOGIN,
-                self::KEY_MESSAGE => self::MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN,
-            ];
-            return response()->json($response, 400);
+            return self::responseIER(self::MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN, self::CODE_MUST_ENTER_FIELDS_WHEN_LOGIN);
         }
 
         if (!$this->checkLogin($userId, $password)) {
-            $response = [
-                self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_WRONG_FIELD_WHEN_LOGIN,
-                self::KEY_MESSAGE => self::MESSAGE_WRONG_FIELD_WHEN_LOGIN,
-            ];
-            return response()->json($response, 400);
+            return self::responseERR(self::CODE_WRONG_FIELD_WHEN_LOGIN, self::MESSAGE_WRONG_FIELD_WHEN_LOGIN);
         }
         try {
             $loginedUser = Auth::user();
@@ -404,20 +332,9 @@ class UserController extends Controller
             $data[self::KEY_REFRESH_TOKEN_EXPIRE_IN] = Carbon::now()->addDay(30)->diffInSeconds();
 
             $data['user'] = $loginedUser;
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_LOGIN_SUCCESS,
-                self::KEY_DATA => $data,
-                self::KEY_MESSAGE => self::MESSAGE_LOGIN_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_LOGIN_SUCCESS, self::MESSAGE_LOGIN_SUCCESS, $data);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_LOGIN,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_LOGIN, $ex->getMessage());
         }
     }
 
@@ -463,21 +380,9 @@ class UserController extends Controller
     {
         try {
             Auth::user()->token()->revoke() ?? null;
-
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_LOGOUT_SUCCESS,
-                self::KEY_DATA => [],
-                self::KEY_MESSAGE => self::MESSAGE_LOGOUT_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_LOGOUT_SUCCESS, self::MESSAGE_LOGOUT_SUCCESS);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_LOGOUT,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_LOGOUT, $ex->getMessage());
         }
     }
 
@@ -501,48 +406,22 @@ class UserController extends Controller
             ]);
 
             if ($validate->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validate->errors()->first(),
-                ];
-                return response()->json($response, 400);
+                return self::responseIER($validate->errors()->first());
             }
 
             if (!Hash::check($currentPassword, Auth::user()->{User::COL_PASSWORD})) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_WRONG_CURRENT_PASSWORD,
-                    self::KEY_MESSAGE => self::MESSAGE_WRONG_CURRENT_PASSWORD,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_WRONG_CURRENT_PASSWORD, self::MESSAGE_WRONG_CURRENT_PASSWORD);
             }
 
             $currentUser = Auth::user();
             $currentUser->{User::COL_PASSWORD} = bcrypt($newPassword);
 
             if (!$currentUser->save()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_CHANGE_PASSWORD_FAIL,
-                    self::KEY_MESSAGE => self::MESSAGE_CHANGE_PASSWORD_FAIL,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_CHANGE_PASSWORD_FAIL, self::MESSAGE_CHANGE_PASSWORD_FAIL);
             }
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_CHANGE_PASSWORD_SUCCESS,
-                self::KEY_DATA => [],
-                self::KEY_MESSAGE => self::MESSAGE_CHANGE_PASSWORD_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_CHANGE_PASSWORD_SUCCESS, self::MESSAGE_CHANGE_PASSWORD_SUCCESS);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD, $ex->getMessage());
         }
     }
 
@@ -570,16 +449,11 @@ class UserController extends Controller
             ], $channel);
 
             if ($validate->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validate->errors()->first(),
-                ];
-                return response()->json($response, 400);
+                return self::responseIER($validate->errors()->first());
             }
             $rs = $this->verifyCodeFunction($receiver, $code, VerifiedCode::RESET_PASSWORD_TYPE, $channel);
             if ($rs !== true) {
-                return response()->json($rs, $rs[self::KEY_CODE]);
+                return self::responseObject($rs);
             }
 
             $userNameType = User::COL_PHONE;
@@ -591,27 +465,11 @@ class UserController extends Controller
             $user->{User::COL_PASSWORD} = bcrypt($newPassword);
 
             if (!$user->save()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_RET_PASSWORD_FAIL,
-                    self::KEY_MESSAGE => self::MESSAGE_RESET_PASSWORD_FAIL,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_RET_PASSWORD_FAIL, self::MESSAGE_RESET_PASSWORD_FAIL);
             }
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_RESET_PASSWORD_SUCCESS,
-                self::KEY_DATA => [],
-                self::KEY_MESSAGE => self::MESSAGE_RESET_PASSWORD_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_RESET_PASSWORD_SUCCESS, self::MESSAGE_RESET_PASSWORD_SUCCESS);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD, $ex->getMessage());
         }
     }
 
@@ -666,20 +524,9 @@ class UserController extends Controller
         try {
             $currentUser= Auth::user();
 
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_GET_USER_PROFILE_SUCCESS,
-                self::KEY_DATA => $currentUser,
-                self::KEY_MESSAGE => self::MESSAGE_GET_USER_PROFILE_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_GET_USER_PROFILE_SUCCESS, self::MESSAGE_GET_USER_PROFILE_SUCCESS, $currentUser);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_GETTING_USER_PROFILE,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_GETTING_USER_PROFILE, $ex->getMessage());
         }
     }
 
@@ -699,12 +546,7 @@ class UserController extends Controller
             ];
             $validate = User::validator($data);
             if ($validate->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validate->errors()->first(),
-                ];
-                return response()->json($response, 400);
+                return self::responseIER($validate->errors()->first());
             }
             DB::beginTransaction();
             $currentUser = Auth::user();
@@ -715,29 +557,13 @@ class UserController extends Controller
 
             if (!$rs1) {
                 DB::rollBack();
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_UPDATE_USER_PROFILE_FAIL,
-                    self::KEY_MESSAGE => self::MESSAGE_UPDATE_USER_PROFILE_FAIL,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_UPDATE_USER_PROFILE_FAIL, self::MESSAGE_UPDATE_USER_PROFILE_FAIL);
             }
             DB::commit();
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_UPDATE_USER_PROFILE_SUCCESS,
-                self::KEY_DATA => $currentUser,
-                self::KEY_MESSAGE => self::MESSAGE_UPDATE_USER_PROFILE_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_UPDATE_USER_PROFILE_SUCCESS, self::MESSAGE_UPDATE_USER_PROFILE_SUCCESS, $currentUser);
         } catch (Exception $ex) {
             DB::rollBack();
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_INTERNAL_ERROR_WHEN_UPDATING_USER_PROFILE,
-                self::KEY_MESSAGE => $ex->getMessage(),
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_UPDATING_USER_PROFILE, $ex->getMessage());
         }
     }
 }

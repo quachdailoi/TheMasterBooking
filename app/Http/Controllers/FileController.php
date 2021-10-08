@@ -187,43 +187,23 @@ class FileController extends Controller
                 File::VAL_OWNER_ID => $ownerId,
             ]);
             if ($validator->fails()) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_FIELD,
-                    self::KEY_MESSAGE => $validator->errors()->first(),
-                ];
-                return response()->json($response, 400);
+                return self::responseIER($validator->errors()->first());
             }
 
             $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[$type]]);
 
             $ownerTypeModel = File::OWNER_TYPE_MODELS[$ownerType] ?? false;
             if (!$ownerTypeModel) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_INVALID_OWNER_TYPE,
-                    self::KEY_MESSAGE => self::MESSAGE_INVALID_OWNER_TYPE,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_INVALID_OWNER_TYPE, self::MESSAGE_INVALID_OWNER_TYPE);
             }
             $ownerModel = $ownerTypeModel::find($ownerId);
             if (!$ownerModel) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_NOT_FOUND_MODEL,
-                    self::KEY_MESSAGE => self::MESSAGE_NOT_FOUND_MODEL,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_NOT_FOUND_MODEL, self::MESSAGE_NOT_FOUND_MODEL);
             }
             $checkOwnerFile = $this->checkOwnerOfFile($ownerType, $ownerId);
             $haveRightChange = $this->checkRight($ownerType);
             if (!$checkOwnerFile or !$haveRightChange) {
-                $response = [
-                    self::KEY_CODE => 400,
-                    self::KEY_DETAIL_CODE => self::CODE_NO_RIGHT_FOR_CHANGE_FILE,
-                    self::KEY_MESSAGE => self::MESSAGE_NO_RIGHT_FOR_CHANGE_FILE,
-                ];
-                return response()->json($response, 400);
+                return self::responseERR(self::CODE_NO_RIGHT_FOR_CHANGE_FILE, self::MESSAGE_NO_RIGHT_FOR_CHANGE_FILE);
             }
 
             $fileFolder = $ownerType.'s/';
@@ -235,7 +215,7 @@ class FileController extends Controller
 
             $rsSaveToDB = $this->saveFileToDB($fullPath, $type, $ownerTypeModel, $ownerId, $fileId);
             if (gettype($rsSaveToDB) == 'array') {
-                return response()->json($rsSaveToDB, $rsSaveToDB[self::KEY_CODE]);
+                return self::responseObject($rsSaveToDB);
             }
             $fileId = $rsSaveToDB->{File::COL_ID};
             $dataResponse = [
@@ -243,20 +223,9 @@ class FileController extends Controller
                 'fileId' => $fileId,
             ];
 
-            $response = [
-                self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_UPLOAD_FILE_SUCCESS,
-                self::KEY_DATA => $dataResponse,
-                self::KEY_MESSAGE => self::MESSAGE_UPLOAD_FILE_SUCCESS,
-            ];
-            return response()->json($response, 200);
+            return self::responseST(self::CODE_UPLOAD_FILE_SUCCESS, self::MESSAGE_UPLOAD_FILE_SUCCESS, $dataResponse);
         } catch (Exception $ex) {
-            $response = [
-                self::KEY_CODE => 500,
-                self::KEY_DETAIL_CODE => self::CODE_ERROR_WHEN_UPLOADING_FILE,
-                self::KEY_MESSAGE => $ex->getMessage() . ' - Please check type and size(max: 2MB) of file',
-            ];
-            return response()->json($response, 500);
+            return self::responseEX(self::CODE_ERROR_WHEN_UPLOADING_FILE, $ex->getMessage() . ' - Please check type and size(max: 2MB) of file');
         }
     }
 
