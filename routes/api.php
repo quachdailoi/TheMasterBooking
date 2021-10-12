@@ -39,10 +39,9 @@ Route::group(['middleware' => 'auth:api', 'prefix' => CategoryC::PREFIX], functi
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], function () {
-    Route::post(ProductC::API_URL_GET_PRODUCT_BY_CATEGORY_ID, [ProductC::class, ProductC::METHOD_GET_PRODUCT_BY_CATEGORY_ID]);
+    Route::post(ProductC::API_URL_GET_PRODUCTS, [ProductC::class, ProductC::METHOD_GET_PRODUCTS]);
     Route::post(ProductC::API_URL_ADD_TO_CART, [ProductC::class, ProductC::METHOD_ADD_TO_CART]);
     Route::post(ProductC::API_URL_REMOVE_FROM_CART, [ProductC::class, ProductC::METHOD_REMOVE_FROM_CART]);
     Route::post(ProductC::API_URL_CREATE_PRODUCT, [ProductC::class, ProductC::METHOD_CREATE_PRODUCT]);
     Route::post(ProductC::API_URL_UPDATE_PRODUCT, [ProductC::class, ProductC::METHOD_UPDATE_PRODUCT]);
-
 });

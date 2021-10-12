@@ -65,7 +65,7 @@ class UserMessage
     const RESET_PASSWORD_SUCCESS = 'ST200006';
     const GET_USER_PROFILE_SUCCESS = 'ST200007';
     const UPDATE_USER_PROFILE_SUCCESS = 'ST200008';
-    const GET_CART_SUCCESS = 'ST200xxx';
+    const GET_CART_SUCCESS = 'ST200017';
 
     // success message
     const M_REGISTER_SUCCESS = 'Register successfully.';
@@ -76,5 +76,5 @@ class UserMessage
     const M_RESET_PASSWORD_SUCCESS = 'Reset password successfully.';
     const M_GET_USER_PROFILE_SUCCESS = 'Get user profile successfully.';
     const M_UPDATE_USER_PROFILE_SUCCESS = 'Update user profile successfully.';
-    const M_GET_CART_SUCCESS = 'Get cart successfully';
+    const M_GET_CART_SUCCESS = 'Get cart successfully.';
 }

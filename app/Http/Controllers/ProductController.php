@@ -16,14 +16,14 @@ class ProductController extends Controller
     const PREFIX = 'product';
 
     /** Api url */
-    const API_URL_GET_PRODUCT_BY_CATEGORY_ID = '/get-products';
+    const API_URL_GET_PRODUCTS = '/get-products';
     const API_URL_ADD_TO_CART = '/add-to-cart/{productId}';
     const API_URL_REMOVE_FROM_CART = '/remove-from-cart/{productId}';
     const API_URL_CREATE_PRODUCT = '/create-product';
     const API_URL_UPDATE_PRODUCT = '/update-product/{productId}';
 
     /** Method */
-    const METHOD_GET_PRODUCT_BY_CATEGORY_ID = 'getProducts';
+    const METHOD_GET_PRODUCTS = 'getProducts';
     const METHOD_ADD_TO_CART = 'addToCart';
     const METHOD_REMOVE_FROM_CART = 'removeFromCart';
     const METHOD_CREATE_PRODUCT = 'createProduct';
@@ -42,6 +42,8 @@ class ProductController extends Controller
             $itemPerPage = $request->input(Product::VAL_ITEM_PER_PAGE, Product::ITEM_PER_PAGE_DEFAULT);
             $page = $request->input(Product::VAL_PAGE, Product::PAGE_DEFAULT);
             $searchValue = $request->input(Product::VAL_SEARCH_VALUE, "");
+            $sortBy = $request->input(Product::VAL_SORT_BY, Product::COL_ID);
+            $sortOrder = $request->input(Product::VAL_SORT_ORDER, Product::ASC_ORDER);
 
             $validator = Product::validator([
                 Product::COL_CATEGORY_ID => $categoryId,
@@ -51,17 +53,27 @@ class ProductController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
-            if (Category::find($categoryId)) {
-                return self::responseERR(PM::NOT_FOUND_CATEGORY, PM::M_NOT_FOUND_CATEGORY);
-            }
+
             $query = Product::query();
-            if ($categoryId) {
+            if ($categoryId and !Category::find($categoryId)) {
                 $query = $query->where(Product::COL_CATEGORY_ID, $categoryId);
             }
-            $query = $query->where(Product::COL_NAME, 'LIKE', "%$searchValue%");
-            $paginationProducts = $query->simplePaginate($itemPerPage)->toArray()['data'];
+            $query = $query->where(Product::COL_NAME, "like", "%$searchValue%");
+            $copyQuery = $query;
+            $count = $query->count();
+            $maxPages = ceil($count/$itemPerPage);
+            if ($page < 1) {
+                $page = 1;
+            }
+            if ($page > $maxPages) {
+                $page = $maxPages;
+            }
+            $skip = ($page - 1) * $itemPerPage;
 
-            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $paginationProducts);
+            $data = $copyQuery->orderBy($sortBy, $sortOrder)
+                ->skip($skip)->take($itemPerPage)->get();
+
+            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $data);
         } catch (Exception $ex) {
             return self::responseEX(PM::EXW_GET_PRODUCTS, $ex->getMessage());
         }
