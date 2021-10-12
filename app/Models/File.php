@@ -52,7 +52,7 @@ class File extends CommonModel
     /** Owner types */
     const OWNER_TYPE_MODELS = [
         File::USER_TYPE => User::class,
-        File::PRODUCT_TYPE => '',
+        File::PRODUCT_TYPE => Product::class,
         File::SERVICE_TYPE => '',
         File::STORE_TYPE => '',
     ];

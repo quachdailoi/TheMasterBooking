@@ -21,6 +21,7 @@ class ProductController extends Controller
     const API_URL_REMOVE_FROM_CART = '/remove-from-cart/{productId}';
     const API_URL_CREATE_PRODUCT = '/create-product';
     const API_URL_UPDATE_PRODUCT = '/update-product/{productId}';
+    const API_URL_DELETE_PRODUCT = '/delete-product/{productId}';
 
     /** Method */
     const METHOD_GET_PRODUCTS = 'getProducts';
@@ -28,6 +29,7 @@ class ProductController extends Controller
     const METHOD_REMOVE_FROM_CART = 'removeFromCart';
     const METHOD_CREATE_PRODUCT = 'createProduct';
     const METHOD_UPDATE_PRODUCT = 'updateProduct';
+    const METHOD_DELETE_PRODUCT = 'deleteProduct';
 
     /**
      * @functionName: getProducts
@@ -168,7 +170,7 @@ class ProductController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
-            if (Category::find($categoryId)) {
+            if (!Category::find($categoryId)) {
                 return self::responseERR(PM::NOT_FOUND_CATEGORY, PM::M_NOT_FOUND_CATEGORY);
             }
             $dataCreate = [
@@ -217,7 +219,7 @@ class ProductController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
-            if (Category::find($categoryId)) {
+            if (!Category::find($categoryId)) {
                 return self::responseERR(PM::NOT_FOUND_CATEGORY, PM::M_NOT_FOUND_CATEGORY);
             }
             $product = Product::find($productId);

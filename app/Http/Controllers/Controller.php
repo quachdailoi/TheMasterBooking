@@ -24,7 +24,7 @@ class Controller extends BaseController
     const KEY_REFRESH_TOKEN_EXPIRE_IN = 'refreshTokenExpireIn';
 
     const CODE_INVALID_FIELD = 'IER400001';
-    const YOUR_ROLE_CANNOT_CALL_THIS_API = 'ERR400xxx';
+    const YOUR_ROLE_CANNOT_CALL_THIS_API = 'ERR400030';
     const M_YOUR_ROLE_CANNOT_CALL_THIS_API = 'Your role cannot call this api.';
 
     public static function responseST($detailsCode, $message, $data = [])
