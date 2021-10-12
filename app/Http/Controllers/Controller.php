@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Auth;
 
 class Controller extends BaseController
 {
@@ -22,6 +24,8 @@ class Controller extends BaseController
     const KEY_REFRESH_TOKEN_EXPIRE_IN = 'refreshTokenExpireIn';
 
     const CODE_INVALID_FIELD = 'IER400001';
+    const YOUR_ROLE_CANNOT_CALL_THIS_API = 'ERR400xxx';
+    const M_YOUR_ROLE_CANNOT_CALL_THIS_API = 'Your role cannot call this api.';
 
     public static function responseST($detailsCode, $message, $data = [])
     {
@@ -72,5 +76,17 @@ class Controller extends BaseController
     public static function responseObject($response)
     {
         return response()->json($response, $response[self::KEY_CODE] ?? 400);
+    }
+
+    public function isAdmin()
+    {
+        $user = Auth::user();
+        return $user->{User::COL_ROLE_ID} == User::ADMIN_ROLE_ID;
+    }
+
+    public function isManager()
+    {
+        $user = Auth::user();
+        return $user->{User::COL_ROLE_ID} == User::MANAGER_ROLE_ID;
     }
 }

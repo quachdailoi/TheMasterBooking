@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
+    /** Prefix */
+    const PREFIX = 'file';
+
     /** Api url */
-    const API_URL_UPLOAD_FILE_S3 = 'file/upload-to-s3';
+    const API_URL_UPLOAD_FILE_S3 = 'upload-to-s3';
 
     /** Method */
     const METHOD_UPLOAD_FILE_S3 = 'uploadFileS3';

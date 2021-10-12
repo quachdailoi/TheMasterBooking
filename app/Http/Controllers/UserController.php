@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CommonModel;
-use App\Models\File;
 use App\Models\User;
 use App\Models\VerifiedCode;
 use Carbon\Carbon;
@@ -13,21 +11,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
+use App\CodeAndMessage\UserMessage as UM;
+use App\Models\Product;
 
 class UserController extends Controller
 {
+    /** prefix */
+    const PREFIX = 'user';
+
     /** Api url */
     const API_URL_LOGIN = '/authentication/login';
     const API_URL_REGISTER = '/authentication/register';
     const API_URL_SEND_CODE_TO = '/authentication/send-code-to';
-    const API_URL_LOGOUT = '/authentication/logout';
-    const API_URL_CHANGE_PASSWORD = '/authentication/change-password';
+    const API_URL_LOGOUT = '/logout';
+    const API_URL_CHANGE_PASSWORD = '/change-password';
     const API_URL_RESET_PASSWORD = '/authentication/reset-password';
-    const API_URL_GET_USER_PROFILE = '/user/get-profile';
-    const API_URL_UPDATE_USER_PROFILE = '/user/update-profile';
+    const API_URL_GET_USER_PROFILE = '/get-profile';
+    const API_URL_UPDATE_USER_PROFILE = '/update-profile';
+    const API_URL_GET_CART = '/get-cart';
 
     /** Method */
     const METHOD_LOGIN = 'login';
@@ -38,78 +41,11 @@ class UserController extends Controller
     const METHOD_RESET_PASSWORD = 'resetPassword';
     const METHOD_GET_PROFILE = 'getProfile';
     const METHOD_UPDATE_PROFILE = 'updateProfile';
+    const METHOD_GET_CART = 'getCart';
 
     // type of verified code
     const TYPE_REGISTER = '0';
     const TYPE_FORGOT_PASSWORD = '1';
-
-    // Error code
-    const CODE_PHONE_NUMBER_EXIST = 'ERR400001';
-    const CODE_INTERNAL_ERROR_WHEN_REGISTERING = 'EX500001';
-    const CODE_SEND_CODE_FAIL = 'ERR400002';
-    const CODE_WAIT_TO_RESEND_CODE = 'ERR400003';
-    const CODE_SAVE_CODE_TO_DB_FAIL = 'ERR400004';
-    const CODE_WRONG_CODE = 'ERR400005';
-    const CODE_EXPIRED_CODE = 'ERR400006';
-    const CODE_VERIFY_CODE_FAIL = 'ERR400007';
-    const CODE_INTERNAL_ERROR_WHEN_SENDING_CODE = 'EX500002';
-    const CODE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'IER400002';
-    const CODE_WRONG_FIELD_WHEN_LOGIN = 'ERR400008';
-    const CODE_INTERNAL_ERROR_WHEN_LOGIN = 'EX500003';
-    const CODE_INVALID_PHONE_NUMBER = 'ERR400009';
-    const CODE_INTERNAL_ERROR_WHEN_LOGOUT = 'EX500004';
-    const CODE_PHONE_OR_EMAIL_DUPLICATED = 'ERR400010';
-    const CODE_PHONE_OR_EMAIL_NOT_EXIST = 'ERR400011';
-    const CODE_WRONG_CURRENT_PASSWORD = 'ERR400012';
-    const CODE_CHANGE_PASSWORD_FAIL = 'ERR400013';
-    const CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD = 'EX500005';
-    const CODE_RET_PASSWORD_FAIL = 'ERR400014';
-    const CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD = 'EX500006';
-    const CODE_EMAIL_ADDRESS_EXIST = 'ERR400015';
-    const CODE_REGISTER_FAIL = 'ERR400016';
-    const CODE_INTERNAL_ERROR_WHEN_GETTING_USER_PROFILE = 'EX500007';
-    const CODE_UPDATE_USER_PROFILE_FAIL = 'ERR400023';
-    const CODE_INTERNAL_ERROR_WHEN_UPDATING_USER_PROFILE = 'EX500008';
-
-    // Error message
-    const MESSAGE_PHONE_NUMBER_EXIST = 'Phone number does exist.';
-    const MESSAGE_SEND_CODE_FAIL = 'Send verified code failed.';
-    const MESSAGE_WAIT_TO_RESEND_CODE = 'Wait 30 seconds to resend verification code.';
-    const MESSAGE_SAVE_CODE_TO_DB_FAIL = 'Save verified code to DB failed.';
-    const MESSAGE_WRONG_CODE = 'Wrong verification code.';
-    const MESSAGE_EXPIRED_CODE = 'Code was expired, resend please.';
-    const MESSAGE_VERIFY_CODE_FAIL = 'Verify code failed.';
-    const MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN = 'Required phone numer or email address and password.';
-    const MESSAGE_WRONG_FIELD_WHEN_LOGIN = 'Phone number/Email address or password was wrong.';
-    const MESSAGE_INVALID_PHONE_NUMBER = 'Invalid phone number - cannot send code.';
-    const MESSAGE_PHONE_OR_EMAIL_DUPLICATED = 'Email or Phone was duplicated.';
-    const MESSAGE_PHONE_OR_EMAIL_NOT_EXIST = 'Email or Phone does not exist.';
-    const MESSAGE_WRONG_CURRENT_PASSWORD = 'Wrong current passworded.';
-    const MESSAGE_CHANGE_PASSWORD_FAIL = 'Change password failed.';
-    const MESSAGE_RESET_PASSWORD_FAIL = 'Reset password failed.';
-    const MESSAGE_EMAIL_ADDRESS_EXIST = 'Email address does exist.';
-    const MESSAGE_REGISTER_FAIL = 'Register failed.';
-    const MESSAGE_UPDATE_USER_PROFILE_FAIL = 'Update user profile failed.';
-
-    // Successful code
-    const CODE_REGISTER_SUCCESS = 'ST200001';
-    const CODE_SEND_CODE_SUCCESS = 'ST200002';
-    const CODE_LOGIN_SUCCESS = 'ST200003';
-    const CODE_LOGOUT_SUCCESS = 'ST200004';
-    const CODE_CHANGE_PASSWORD_SUCCESS = 'ST200005';
-    const CODE_RESET_PASSWORD_SUCCESS = 'ST200006';
-    const CODE_GET_USER_PROFILE_SUCCESS = 'ST200007';
-    const CODE_UPDATE_USER_PROFILE_SUCCESS = 'ST200008';
-
-    // Successful message
-    const MESSAGE_REGISTER_SUCCESS = 'Register successfully.';
-    const MESSAGE_SEND_CODE_SUCESS = 'Send verified code successfully.';
-    const MESSAGE_LOGIN_SUCCESS = 'Login successfully.';
-    const MESSAGE_LOGOUT_SUCCESS = 'Logout successfully.';
-    const MESSAGE_CHANGE_PASSWORD_SUCCESS = 'Change password successfully.';
-    const MESSAGE_RESET_PASSWORD_SUCCESS = 'Reset password successfully.';
-    const MESSAGE_GET_USER_PROFILE_SUCCESS = 'Get user profile successfully.';
-    const MESSAGE_UPDATE_USER_PROFILE_SUCCESS = 'Update user profile successfully.';
 
     /**
      * @functionName: register
@@ -146,11 +82,11 @@ class UserController extends Controller
             $existUser = User::where(User::COL_PHONE, $userId)
                 ->orWhere(User::COL_EMAIL, $userId)->first();
             if ($existUser) {
-                $detailsCode = self::CODE_PHONE_NUMBER_EXIST;
-                $message = self::MESSAGE_PHONE_NUMBER_EXIST;
+                $detailsCode = UM::PHONE_NUMBER_EXIST;
+                $message = UM::PHONE_NUMBER_EXIST;
                 if ($channel === VerifiedCode::EMAIL_CHANNEL) {
-                    $detailsCode = self::CODE_EMAIL_ADDRESS_EXIST;
-                    $message = self::MESSAGE_EMAIL_ADDRESS_EXIST;
+                    $detailsCode = UM::EMAIL_ADDRESS_EXIST;
+                    $message = UM::EMAIL_ADDRESS_EXIST;
                 }
                 return self::responseERR($detailsCode, $message);
             }
@@ -173,13 +109,13 @@ class UserController extends Controller
 
             $user = User::create($dataCreate);
             if (!$user) {
-                return self::responseERR(self::CODE_REGISTER_FAIL, self::MESSAGE_REGISTER_FAIL);
+                return self::responseERR(UM::REGISTER_FAILED, UM::M_REGISTER_FAILED);
             }
             $tokenObj = $this->getToken($userId, $password);
             $data[User::ACCESS_TOKEN] = $tokenObj->access_token;
-            return self::responseST(self::CODE_REGISTER_SUCCESS, self::MESSAGE_REGISTER_SUCCESS, $data);
+            return self::responseST(UM::REGISTER_SUCCESS, UM::M_REGISTER_SUCCESS, $data);
         } catch (Exception $ex) {
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_REGISTERING, $ex->getMessage());
+            return self::responseEX(UM::EXW_REGISTERING, $ex->getMessage());
         }
     }
 
@@ -208,37 +144,37 @@ class UserController extends Controller
             if (!$verifiedCode) {
                 $verifiedCode = VerifiedCode::create(array_merge($conditions, [VerifiedCode::COL_CODE => $code]));
                 if (!$verifiedCode) {
-                    return self::responseERR(self::CODE_SEND_CODE_FAIL, self::MESSAGE_SEND_CODE_FAIL);
+                    return self::responseERR(UM::SEND_CODE_FAILED, UM::M_SEND_CODE_FAILED);
                 }
                 // send code to email or phone->
                 $this->sendBy($channel, $receiver, $code);
-                return self::responseST(self::CODE_SEND_CODE_SUCCESS, self::MESSAGE_SEND_CODE_SUCESS, $code);
+                return self::responseST(UM::SEND_CODE_SUCCESS, UM::M_SEND_CODE_SUCESS, $code);
             }
             $timeSentCode = $verifiedCode->{VerifiedCode::COL_CREATED_AT};
             $now = new DateTime();
             $timeValid = $timeSentCode->modify('+ 30 seconds');
             if ($now < $timeValid) {
-                return self::responseERR(self::CODE_WAIT_TO_RESEND_CODE, self::MESSAGE_WAIT_TO_RESEND_CODE);
+                return self::responseERR(UM::WAIT_TO_RESEND_CODE, UM::M_WAIT_TO_RESEND_CODE);
             }
             $verifiedCode->{VerifiedCode::COL_CODE} = $code;
             $verifiedCode->{VerifiedCode::COL_CREATED_AT} = Carbon::now();
             $verifiedCode->{VerifiedCode::COL_WAS_VERIFIED} = VerifiedCode::NOT_VERIFY_STATUS;
             if (!$verifiedCode->save()) {
-                return self::responseERR(self::CODE_SAVE_CODE_TO_DB_FAIL, self::MESSAGE_SAVE_CODE_TO_DB_FAIL);
+                return self::responseERR(UM::SAVE_CODE_TO_DB_FAILED, UM::M_SAVE_CODE_TO_DB_FAILED);
             }
             $this->sendBy($channel, $receiver, $code);
             $response = [
                 self::KEY_CODE => 200,
-                self::KEY_DETAIL_CODE => self::CODE_SEND_CODE_SUCCESS,
+                self::KEY_DETAIL_CODE => UM::SEND_CODE_SUCCESS,
                 self::KEY_DATA => $code,
-                self::KEY_MESSAGE => self::MESSAGE_SEND_CODE_SUCESS,
+                self::KEY_MESSAGE => UM::M_SEND_CODE_SUCESS,
             ];
-            return self::responseST(self::CODE_SEND_CODE_SUCCESS, self::MESSAGE_SEND_CODE_SUCESS, $code);
+            return self::responseST(UM::SEND_CODE_SUCCESS, UM::M_SEND_CODE_SUCESS, $code);
         } catch (Exception $ex) {
             if (str_contains($ex->getMessage(), '[HTTP 400] Unable to create record')) {
-                return self::responseERR(self::CODE_INVALID_PHONE_NUMBER, self::MESSAGE_INVALID_PHONE_NUMBER);
+                return self::responseERR(UM::INVALID_PHONE_NUMBER, UM::M_INVALID_PHONE_NUMBER);
             }
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_SENDING_CODE, $ex->getMessage());
+            return self::responseEX(UM::EXW_SENDING_CODE, $ex->getMessage());
         }
     }
 
@@ -262,15 +198,15 @@ class UserController extends Controller
         if ($isExistUser and $type === self::TYPE_REGISTER) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_PHONE_OR_EMAIL_DUPLICATED,
-                self::KEY_MESSAGE => self::MESSAGE_PHONE_OR_EMAIL_DUPLICATED,
+                self::KEY_DETAIL_CODE => UM::PHONE_OR_EMAIL_DUPLICATED,
+                self::KEY_MESSAGE => UM::M_PHONE_OR_EMAIL_DUPLICATED,
             ];
             return $response;
         } elseif (!$isExistUser and $type === self::TYPE_FORGOT_PASSWORD) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_PHONE_NUMBER_EXIST,
-                self::KEY_MESSAGE => self::MESSAGE_PHONE_NUMBER_EXIST,
+                self::KEY_DETAIL_CODE => UM::PHONE_NUMBER_EXIST,
+                self::KEY_MESSAGE => UM::M_PHONE_NUMBER_EXIST,
             ];
             return $response;
         }
@@ -316,11 +252,11 @@ class UserController extends Controller
             ]
         );
         if ($validator->fails()) {
-            return self::responseIER(self::MESSAGE_MUST_ENTER_FIELDS_WHEN_LOGIN, self::CODE_MUST_ENTER_FIELDS_WHEN_LOGIN);
+            return self::responseIER(UM::M_MUST_ENTER_FIELDS_WHEN_LOGIN, UM::MUST_ENTER_FIELDS_WHEN_LOGIN);
         }
 
         if (!$this->checkLogin($userId, $password)) {
-            return self::responseERR(self::CODE_WRONG_FIELD_WHEN_LOGIN, self::MESSAGE_WRONG_FIELD_WHEN_LOGIN);
+            return self::responseERR(UM::WRONG_FIELD_WHEN_LOGIN, UM::M_WRONG_FIELD_WHEN_LOGIN);
         }
         try {
             $loginedUser = Auth::user();
@@ -332,9 +268,9 @@ class UserController extends Controller
             $data[self::KEY_REFRESH_TOKEN_EXPIRE_IN] = Carbon::now()->addDay(30)->diffInSeconds();
 
             $data['user'] = $loginedUser;
-            return self::responseST(self::CODE_LOGIN_SUCCESS, self::MESSAGE_LOGIN_SUCCESS, $data);
+            return self::responseST(UM::LOGIN_SUCCESS, UM::M_LOGIN_SUCCESS, $data);
         } catch (Exception $ex) {
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_LOGIN, $ex->getMessage());
+            return self::responseEX(UM::EXW_LOGIN, $ex->getMessage());
         }
     }
 
@@ -380,9 +316,9 @@ class UserController extends Controller
     {
         try {
             Auth::user()->token()->revoke() ?? null;
-            return self::responseST(self::CODE_LOGOUT_SUCCESS, self::MESSAGE_LOGOUT_SUCCESS);
+            return self::responseST(UM::LOGOUT_SUCCESS, UM::M_LOGOUT_SUCCESS);
         } catch (Exception $ex) {
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_LOGOUT, $ex->getMessage());
+            return self::responseEX(UM::EXW_LOGOUT, $ex->getMessage());
         }
     }
 
@@ -410,18 +346,18 @@ class UserController extends Controller
             }
 
             if (!Hash::check($currentPassword, Auth::user()->{User::COL_PASSWORD})) {
-                return self::responseERR(self::CODE_WRONG_CURRENT_PASSWORD, self::MESSAGE_WRONG_CURRENT_PASSWORD);
+                return self::responseERR(UM::WRONG_CURRENT_PASSWORD, UM::M_WRONG_CURRENT_PASSWORD);
             }
 
             $currentUser = Auth::user();
             $currentUser->{User::COL_PASSWORD} = bcrypt($newPassword);
 
             if (!$currentUser->save()) {
-                return self::responseERR(self::CODE_CHANGE_PASSWORD_FAIL, self::MESSAGE_CHANGE_PASSWORD_FAIL);
+                return self::responseERR(UM::CHANGE_PASSWORD_FAILED, UM::M_CHANGE_PASSWORD_FAILED);
             }
-            return self::responseST(self::CODE_CHANGE_PASSWORD_SUCCESS, self::MESSAGE_CHANGE_PASSWORD_SUCCESS);
+            return self::responseST(UM::CHANGE_PASSWORD_SUCCESS, UM::M_CHANGE_PASSWORD_SUCCESS);
         } catch (Exception $ex) {
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_CHANGING_PASSWORD, $ex->getMessage());
+            return self::responseEX(UM::EXW_CHANGING_PASSWORD, $ex->getMessage());
         }
     }
 
@@ -465,11 +401,11 @@ class UserController extends Controller
             $user->{User::COL_PASSWORD} = bcrypt($newPassword);
 
             if (!$user->save()) {
-                return self::responseERR(self::CODE_RET_PASSWORD_FAIL, self::MESSAGE_RESET_PASSWORD_FAIL);
+                return self::responseERR(UM::RESET_PASSWORD_FAILED, UM::M_RESET_PASSWORD_FAILED);
             }
-            return self::responseST(self::CODE_RESET_PASSWORD_SUCCESS, self::MESSAGE_RESET_PASSWORD_SUCCESS);
+            return self::responseST(UM::RESET_PASSWORD_SUCCESS, UM::M_RESET_PASSWORD_SUCCESS);
         } catch (Exception $ex) {
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_RESETING_PASSWORD, $ex->getMessage());
+            return self::responseEX(UM::EXW_RESETING_PASSWORD, $ex->getMessage());
         }
     }
 
@@ -485,8 +421,8 @@ class UserController extends Controller
         if (!$existedCode) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_WRONG_CODE,
-                self::KEY_MESSAGE => self::MESSAGE_WRONG_CODE,
+                self::KEY_DETAIL_CODE => UM::WRONG_CODE,
+                self::KEY_MESSAGE => UM::M_WRONG_CODE,
             ];
             return $response;
         }
@@ -496,8 +432,8 @@ class UserController extends Controller
         if ($now > $timeValidForVerification) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_EXPIRED_CODE,
-                self::KEY_MESSAGE => self::MESSAGE_EXPIRED_CODE,
+                self::KEY_DETAIL_CODE => UM::EXPIRED_CODE,
+                self::KEY_MESSAGE => UM::M_EXPIRED_CODE,
             ];
             return $response;
         }
@@ -505,8 +441,8 @@ class UserController extends Controller
         if (!$existedCode->save()) {
             $response = [
                 self::KEY_CODE => 400,
-                self::KEY_DETAIL_CODE => self::CODE_VERIFY_CODE_FAIL,
-                self::KEY_MESSAGE => self::MESSAGE_VERIFY_CODE_FAIL,
+                self::KEY_DETAIL_CODE => UM::VERIFY_CODE_FAILED,
+                self::KEY_MESSAGE => UM::M_VERIFY_CODE_FAILED,
             ];
             return $response;
         }
@@ -524,14 +460,14 @@ class UserController extends Controller
         try {
             $currentUser= Auth::user();
 
-            return self::responseST(self::CODE_GET_USER_PROFILE_SUCCESS, self::MESSAGE_GET_USER_PROFILE_SUCCESS, $currentUser);
+            return self::responseST(UM::GET_USER_PROFILE_SUCCESS, UM::M_GET_USER_PROFILE_SUCCESS, $currentUser);
         } catch (Exception $ex) {
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_GETTING_USER_PROFILE, $ex->getMessage());
+            return self::responseEX(UM::EXW_GETTING_USER_PROFILE, $ex->getMessage());
         }
     }
 
     /**
-     * @functionName: getProfile
+     * @functionName: updateProfile
      * @type:         public
      * @param:        Request $request
      * @return:       String(Json)
@@ -557,13 +493,46 @@ class UserController extends Controller
 
             if (!$rs1) {
                 DB::rollBack();
-                return self::responseERR(self::CODE_UPDATE_USER_PROFILE_FAIL, self::MESSAGE_UPDATE_USER_PROFILE_FAIL);
+                return self::responseERR(UM::UPDATE_USER_PROFILE_FAILED, UM::M_UPDATE_USER_PROFILE_FAILED);
             }
             DB::commit();
-            return self::responseST(self::CODE_UPDATE_USER_PROFILE_SUCCESS, self::MESSAGE_UPDATE_USER_PROFILE_SUCCESS, $currentUser);
+            return self::responseST(UM::UPDATE_USER_PROFILE_SUCCESS, UM::M_UPDATE_USER_PROFILE_SUCCESS, $currentUser);
         } catch (Exception $ex) {
             DB::rollBack();
-            return self::responseEX(self::CODE_INTERNAL_ERROR_WHEN_UPDATING_USER_PROFILE, $ex->getMessage());
+            return self::responseEX(UM::EXW_UPDATING_USER_PROFILE, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getCart
+     * @type:         public
+     * @param:        Empty
+     * @return:       String(Json)
+     */
+    public function getCart()
+    {
+        try {
+            $currentUser = Auth::user();
+            $cart = $currentUser->{User::COL_CART};
+            $dataResponse = [];
+            if ($cart) {
+                $productIds = array_keys($cart);
+                $products = Product::whereIn(Product::COL_ID, $productIds)->get();
+                foreach ($products as $product) {
+                    $productId = $product->{Product::COL_ID};
+                    $quantity = $cart[$productId];
+                    $dataCart = [
+                        Product::COL_ID => $productId,
+                        Product::VAL_QUANTITY => $quantity,
+                        Product::VAL_IMAGE => $product[Product::VAL_IMAGE],
+                        Product::VAL_AMOUNT => $quantity * $product[Product::COL_PRICE],
+                    ];
+                    array_push($dataResponse, $dataCart);
+                }
+            }
+            return self::responseST(UM::GET_CART_SUCCESS, UM::M_GET_CART_SUCCESS, $dataResponse);
+        } catch (Exception $ex) {
+            return self::responseEX(UM::EXW_GET_CART, $ex->getMessage());
         }
     }
 }

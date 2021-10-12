@@ -32,6 +32,7 @@ class User extends Authenticatable
     const COL_STATUS = 'status';
     const COL_ROLE_ID = 'role_id';
     const COL_STORE_ID = 'store_id';
+    const COL_CART = 'cart';
 
     /** Value of model */
     const VAL_REMEMBER_TOKEN = 'remember_token';
@@ -94,6 +95,7 @@ class User extends Authenticatable
     protected $casts = [
         self::COL_EMAIL_VERIFIED_AT => 'datetime',
         self::COL_PHONE_VERIFIED_AT => 'datetime',
+        self::COL_CART => 'array',
     ];
 
 
