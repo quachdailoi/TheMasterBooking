@@ -72,8 +72,12 @@ class ProductController extends Controller
 
             $data = $copyQuery->orderBy($sortBy, $sortOrder)
                 ->skip($skip)->take($itemPerPage)->get();
+            $dataResponse = [
+                'maxOfPage' => $maxPages,
+                'products' => $data,
+            ];
 
-            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $data);
+            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $dataResponse);
         } catch (Exception $ex) {
             return self::responseEX(PM::EXW_GET_PRODUCTS, $ex->getMessage());
         }
