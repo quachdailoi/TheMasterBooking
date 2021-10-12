@@ -27,6 +27,12 @@ class Product extends CommonModel
     const VAL_QUANTITY = 'quantity';
     const VAL_IMAGE = 'image';
     const VAL_AMOUNT = 'amount';
+    const VAL_SORT_BY = 'sortBy';
+    const VAL_SORT_ORDER = 'sortOrder';
+
+    /** Sort order */
+    const ASC_ORDER = 'asc';
+    const DESC_ORDER = 'desc';
 
     /** default value */
     const ITEM_PER_PAGE_DEFAULT = 10;
