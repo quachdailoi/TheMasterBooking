@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post(UserC::API_URL_LOGIN, [UserC::class, UserC::METHOD_LOGIN]);
-Route::post(UserC::API_URL_REGISTER, [UserCr::class, UserC::METHOD_REGISTER]);
+Route::post(UserC::API_URL_REGISTER, [UserC::class, UserC::METHOD_REGISTER]);
 Route::post(UserC::API_URL_SEND_CODE_TO, [UserC::class, UserC::METHOD_SEND_CODE_TO]);
 Route::post(UserC::API_URL_RESET_PASSWORD, [UserC::class, UserC::METHOD_RESET_PASSWORD]);
 
