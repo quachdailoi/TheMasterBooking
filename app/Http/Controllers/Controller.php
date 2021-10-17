@@ -55,10 +55,11 @@ class Controller extends BaseController
         ];
         return response()->json($response, 500);
     }
-    public static function responseERR($detailsCode, $message)
+    public static function responseERR($detailsCode, $message, $data = [])
     {
         $response = [
             self::KEY_CODE => 400,
+            self::KEY_DATA => $data,
             self::KEY_DETAIL_CODE => $detailsCode,
             self::KEY_MESSAGE => $message,
         ];

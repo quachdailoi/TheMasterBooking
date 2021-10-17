@@ -4,6 +4,8 @@ use App\Http\Controllers\CategoryController as CategoryC;
 use App\Http\Controllers\FileController as FileC;
 use App\Http\Controllers\UserController as UserC;
 use App\Http\Controllers\ProductController as ProductC;
+use App\Http\Controllers\ProductOrderController as ProductOrderC;
+use App\Http\Controllers\StoreController as StoreC;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,4 +47,13 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], functio
     Route::post(ProductC::API_URL_CREATE_PRODUCT, [ProductC::class, ProductC::METHOD_CREATE_PRODUCT]);
     Route::post(ProductC::API_URL_UPDATE_PRODUCT, [ProductC::class, ProductC::METHOD_UPDATE_PRODUCT]);
     Route::delete(ProductC::API_URL_DELETE_PRODUCT, [ProductC::class, ProductC::METHOD_DELETE_PRODUCT]);
+});
+
+Route::group(['middleware' => 'auth:api', 'prefix' => ProductOrderC::PREFIX], function () {
+    Route::post(ProductOrderC::API_URL_CHECKOUT, [ProductOrderC::class, ProductOrderC::METHOD_CHECKOUT]);
+});
+
+Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function () {
+    Route::get(StoreC::API_URL_GET_STORES, [StoreC::class, StoreC::METHOD_GET_STORES]);
+    Route::post(StoreC::API_URL_CREATE_STORE, [StoreC::class, StoreC::METHOD_CREATE_STORE]);
 });

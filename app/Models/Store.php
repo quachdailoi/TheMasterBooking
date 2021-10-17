@@ -15,11 +15,20 @@ class Store extends CommonModel
     const COL_PHONE = 'phone';
     const COL_NAME = 'name';
     const COL_ADDRESS = 'address';
-    const COL_OPEN_AT = 'open_at';
-    const COL_CLOSE_AT = 'close_at';
+    const COL_WORK_SCHEDULE = 'work_schedule';
     const COL_STATUS = 'status';
 
     /** value of model */
+    const VAL_WORK_SCHEDULE = 'workSchedule';
+    const VAL_OPEN_AT = 'openAt';
+    const VAL_CLOSE_AT = 'closeAt';
+    const MODAY = 'moday';
+    const TUESDAY = 'tuesday';
+    const WEDNESDAY = 'wednesday';
+    const THURSDAY = 'thursday';
+    const FRIDAY = 'friday';
+    const SATURDAY = 'saturday';
+    const SUNDAY = 'sunday';
 
     /** relations */
     const CATEGORIES = 'categories';
@@ -33,8 +42,7 @@ class Store extends CommonModel
         self::COL_PHONE,
         self::COL_NAME,
         self::COL_ADDRESS,
-        self::COL_OPEN_AT,
-        self::COL_CLOSE_AT,
+        self::COL_WORK_SCHEDULE,
         self::COL_STATUS,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
@@ -54,8 +62,9 @@ class Store extends CommonModel
      * @var array
      */
     protected $casts = [
-        self::COL_OPEN_AT => 'datetime:H:i',
-        self::COL_CLOSE_AT => 'datetime:H:i',
+        self::VAL_OPEN_AT => 'datetime:H:i',
+        self::VAL_CLOSE_AT => 'datetime:H:i',
+        self::COL_WORK_SCHEDULE => 'array',
     ];
 
     public static function getTableName()
@@ -78,18 +87,32 @@ class Store extends CommonModel
             self::COL_ID => 'numeric',
             self::COL_PHONE => 'required|numeric',
             self::COL_NAME => 'required',
-            self::COL_OPEN_AT => 'required|date_format:H:i',
-            self::COL_CLOSE_AT => 'required|date_format:H:i|after:time_start',
+            self::COL_ADDRESS => 'required',
+            self::VAL_OPEN_AT => 'required|date_format:H:i',
+            self::VAL_CLOSE_AT => 'required|date_format:H:i|after:openAt',
             self::COL_STATUS => 'nullable|numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
             'numeric' => ':attribute must be a number',
             'date_format' => ':attribute is in wrong format',
-            'after' => 'Close time must be after open time in real login',
+            'after' => 'Close time must be after open time.',
         ];
 
         return CommonModel::validate($data, $validatedFields, $errorCode);
+    }
+
+    public static function workScheduleGen(array $monday, array $tuesday, array $wednesday, array $thursday, array $priday, array $saturday, array $sunday)
+    {
+        return [
+            'moday' => $monday,
+            'tuesday' => $tuesday,
+            'wednesday' => $wednesday,
+            'thursday' => $thursday,
+            'priday' => $priday,
+            'saturday' => $saturday,
+            'sunday' => $sunday,
+        ];
     }
 
     /**

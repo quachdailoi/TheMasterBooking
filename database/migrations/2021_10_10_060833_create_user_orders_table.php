@@ -20,9 +20,11 @@ class CreateUserOrdersTable extends Migration
             $table->dateTime('order_date');
             $table->unsignedTinyInteger('status')->default(1);
             $table->text('address');
-            $table->string('email');
+            $table->string('email')->nullable();
+            $table->string('phone');
             $table->string('receiver_name');
-            $table->string('method');
+            $table->string('shipping_method');
+            $table->string('payment_method');
             $table->timestamps();
             $table->softDeletes();
 

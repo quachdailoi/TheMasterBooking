@@ -83,10 +83,10 @@ class UserController extends Controller
                 ->orWhere(User::COL_EMAIL, $userId)->first();
             if ($existUser) {
                 $detailsCode = UM::PHONE_NUMBER_EXIST;
-                $message = UM::PHONE_NUMBER_EXIST;
+                $message = UM::M_PHONE_NUMBER_EXIST;
                 if ($channel === VerifiedCode::EMAIL_CHANNEL) {
                     $detailsCode = UM::EMAIL_ADDRESS_EXIST;
-                    $message = UM::EMAIL_ADDRESS_EXIST;
+                    $message = UM::M_EMAIL_ADDRESS_EXIST;
                 }
                 return self::responseERR($detailsCode, $message);
             }
