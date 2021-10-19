@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\CodeAndMessage\ProductMessage as PM;
 use App\Models\Category;
+use App\Models\File;
 use App\Models\Product;
 use App\Models\User;
 use Exception;
@@ -181,10 +182,31 @@ class ProductController extends Controller
                 Product::COL_DESCRIPTION => $description,
                 Product::COL_CATEGORY_ID => $categoryId,
             ];
+            DB::beginTransaction();
+            $dataImages = [];
+            $maxImages = (int) getenv('MAX_PRODUCT_IMAGE');
+            if ($maxImages == 0) {
+                $maxImages = 1;
+            }
             $product = Product::create($dataCreate);
             if (!$product) {
                 return self::responseERR(PM::CREATE_PRODUCT_FAILED, PM::M_CREATE_PRODUCT_FAILED);
             }
+            for ($i = 0; $i < $maxImages; $i++) {
+                $dataImage = [
+                    File::COL_OWNER_ID => $product->{Product::COL_ID},
+                    File::COL_OWNER_TYPE => Store::class,
+                    File::COL_PATH => getenv('DEFAULT_PRODUCT_IMAGE_URL'),
+                    File::COL_TYPE => File::IMAGE_TYPE,
+                    File::COL_CREATED_AT => now()
+                ];
+                array_push($dataImages, $dataImage);
+            }
+            if (!File::insert($dataImage)) {
+                DB::rollBack();
+                return self::responseERR(PM::CREATE_PRODUCT_FAILED, PM::M_CREATE_PRODUCT_FAILED);
+            }
+            DB::commit();
             return self::responseST(PM::CREATE_PRODUCT_SUCCESS, PM::M_CREATE_PRODUCT_SUCCESS, $product);
         } catch (Exception $ex) {
             return self::responseEX(PM::EXW_CREAT_PRODUCT, $ex->getMessage());
@@ -265,12 +287,15 @@ class ProductController extends Controller
             if (!$product) {
                 return self::responseERR(PM::NOT_FOUND_PRODUCT, PM::M_NOT_FOUND_PRODUCT);
             }
-            $rsDelete = $product->delete();
-            if (!$rsDelete) {
+            DB::beginTransaction();
+            if (!$product->files()->delete() or $product->delete()) {
+                DB::rollBack();
                 return self::responseERR(PM::DELETE_PRODUCT_FAILED, PM::M_DELETE_PRODUCT_FAILED);
             }
+            DB::commit();
             return self::responseST(PM::DELETE_PRODUCT_SUCCESS, PM::M_DELETE_PRODUCT_SUCCESS);
         } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX(PM::EXW_DELETE_PRODUCT, $ex->getMessage());
         }
     }

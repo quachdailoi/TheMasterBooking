@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\CategoryController as CategoryC;
 use App\Http\Controllers\FileController as FileC;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController as UserC;
 use App\Http\Controllers\ProductController as ProductC;
 use App\Http\Controllers\ProductOrderController as ProductOrderC;
+use App\Http\Controllers\ServiceCategoryController as ServiceCategoryC;
+use App\Http\Controllers\ServiceController as ServiceC;
 use App\Http\Controllers\StoreController as StoreC;
 use Illuminate\Support\Facades\Route;
 
@@ -55,5 +58,18 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ProductOrderC::PREFIX], fu
 
 Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function () {
     Route::get(StoreC::API_URL_GET_STORES, [StoreC::class, StoreC::METHOD_GET_STORES]);
+    Route::get(StoreC::API_URL_GET_STORE, [StoreC::class, StoreC::METHOD_GET_STORE]);
     Route::post(StoreC::API_URL_CREATE_STORE, [StoreC::class, StoreC::METHOD_CREATE_STORE]);
+});
+
+Route::group(['middleware' => 'auth:api', 'prefix' => ServiceC::PREFIX], function () {
+    Route::post(ServiceC::API_URL_GET_SERVICES, [ServiceC::class, ServiceC::METHOD_GET_SERVICES]);
+});
+
+Route::group(['middleware' => 'auth:api', 'prefix' => ServiceCategoryC::PREFIX], function () {
+    Route::get(ServiceCategoryC::API_URL_GET_CATEGORIES, [ServiceCategoryC::class, ServiceCategoryC::METHOD_GET_ALL]);
+});
+
+Route::group(['middleware' => 'auth:api', 'prefix' => HomeController::PREFIX], function () {
+    Route::get(HomeController::API_URL_GET_DATA, [HomeController::class, HomeController::METHOD_GET_DATA]);
 });

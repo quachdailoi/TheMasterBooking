@@ -2,22 +2,25 @@
 
 namespace App\Models;
 
+use App\Traits\SelfReferenceTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
-class Category extends CommonModel
+class ServiceCategory extends CommonModel
 {
-    use HasFactory;
+    use HasFactory, SelfReferenceTrait;
 
-    protected $table = 'categories';
+    protected $table = 'service_categories';
 
     /** Column of table */
     const COL_NAME = 'name';
-    const COL_STORE_ID = 'store_id';
+    const COL_PARENT_ID = 'parent_id';
 
     /** value of model */
-    const VAL_STORE_ID = 'storeId';
+    const VAL_PARENT_ID = 'parentId';
+    const VAL_IMAGES = 'images';
+
+    /** relations */
 
     /**
      * The attributes that are mass assignable.
@@ -26,7 +29,7 @@ class Category extends CommonModel
      */
     protected $fillable = [
         self::COL_NAME,
-        self::COL_STORE_ID,
+        self::COL_PARENT_ID,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
         self::COL_DELETED_AT,
@@ -40,11 +43,38 @@ class Category extends CommonModel
     protected $hidden = [];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['images'];
+
+    /**
+     * Get the user's avatar.
+     *
+     * @return string
+     */
+    public function getImagesAttribute()
+    {
+        $images = $this->files()->select(
+            File::COL_ID . ' as fileId',
+            File::COL_PATH . ' as filePath',
+        )->get()->toArray();
+        if (count($images) == 1) {
+            $images = $images[0];
+        } elseif (count($images) == 0) {
+            $images = getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL');
+        }
+        return $images;
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @var array
      */
-    protected $casts = [];
+    protected $casts = [
+    ];
 
     public static function getTableName()
     {
@@ -63,8 +93,9 @@ class Category extends CommonModel
     public static function validator(array $data)
     {
         $validatedFields = [
-            self::COL_NAME => 'required|numeric',
-            self::COL_STORE_ID => 'required|numeric',
+            self::COL_ID => 'numeric',
+            self::COL_NAME => 'required',
+            self::VAL_PARENT_ID => 'required|numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
@@ -74,13 +105,19 @@ class Category extends CommonModel
         return CommonModel::validate($data, $validatedFields, $errorCode);
     }
 
-    public function products()
+    /**
+     * Get the services
+     */
+    public function services()
     {
-        return $this->hasMany(Product::class, Product::COL_CATEGORY_ID, self::COL_ID);
+        return $this->hasMany(Service::class, Service::COL_SERVICE_ID, self::COL_ID);
     }
 
-    public function homeProducts()
+    /**
+     * Get the user's file.
+     */
+    public function files()
     {
-        return $this->hasMany(Product::class, Product::COL_CATEGORY_ID, self::COL_ID)->take(5);
+        return $this->morphMany(File::class, 'owner');
     }
 }

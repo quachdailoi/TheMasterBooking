@@ -5,67 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends CommonModel
+class Service extends CommonModel
 {
     use HasFactory;
 
-    protected $table = 'products';
+    protected $table = 'services';
 
     /** Column of table */
     const COL_NAME = 'name';
-    const COL_QUANTITY = 'quantity';
-    const COL_PRICE = 'price';
     const COL_DESCRIPTION = 'description';
-    const COL_STATUS = 'status';
+    const COL_PRICE = 'price';
     const COL_CATEGORY_ID = 'category_id';
 
     /** value of model */
-    const VAL_ITEM_PER_PAGE = 'itemPerPage';
-    const VAL_PAGE = 'page';
     const VAL_CATEGORY_ID = 'categoryId';
-    const VAL_SEARCH_VALUE = 'searchValue';
-    const VAL_QUANTITY = 'quantity';
     const VAL_IMAGES = 'images';
-    const VAL_AMOUNT = 'amount';
-    const VAL_SORT_BY = 'sortBy';
-    const VAL_SORT_ORDER = 'sortOrder';
 
-    /** Sort order */
-    const ASC_ORDER = 'asc';
-    const DESC_ORDER = 'desc';
-
-    /** default value */
-    const ITEM_PER_PAGE_DEFAULT = 10;
-    const PAGE_DEFAULT = 1;
-
-    /** max images of product */
-    const MAX_IMAGES = 1;
-
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = ['images'];
-
-    /**
-     * Get the product's images.
-     *
-     * @return string
-     */
-    public function getImagesAttribute()
-    {
-        $images = $this->files()->select(
-            File::COL_ID . ' as fileId',
-            File::COL_PATH . ' as filePath',
-        )->get()->toArray();
-        if (count($images) == 1) {
-            $images = $images[0];
-        } elseif (count($images) == 0) {
-            $images = getenv('DEFAULT_PRODUCT_IMAGE_URL');
-        }
-        return $images;
-    }
+    /** relations */
 
     /**
      * The attributes that are mass assignable.
@@ -74,10 +30,8 @@ class Product extends CommonModel
      */
     protected $fillable = [
         self::COL_NAME,
-        self::COL_QUANTITY,
-        self::COL_PRICE,
         self::COL_DESCRIPTION,
-        self::COL_STATUS,
+        self::COL_PRICE,
         self::COL_CATEGORY_ID,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
@@ -92,11 +46,38 @@ class Product extends CommonModel
     protected $hidden = [];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['images'];
+
+    /**
+     * Get the user's avatar.
+     *
+     * @return string
+     */
+    public function getImagesAttribute()
+    {
+        $images = $this->files()->select(
+            File::COL_ID . ' as fileId',
+            File::COL_PATH . ' as filePath',
+        )->get()->toArray();
+        if (count($images) == 1) {
+            $images = $images[0];
+        } elseif (count($images) == 0) {
+            $images = getenv('DEFAULT_SERVICE_IMAGE_URL');
+        }
+        return $images;
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @var array
      */
-    protected $casts = [];
+    protected $casts = [
+    ];
 
     public static function getTableName()
     {
@@ -115,15 +96,11 @@ class Product extends CommonModel
     public static function validator(array $data)
     {
         $validatedFields = [
-            self::COL_NAME => 'required|numeric',
+            self::COL_ID => 'numeric',
             self::COL_NAME => 'required',
-            self::COL_QUANTITY => 'required|numeric',
             self::COL_DESCRIPTION => 'required',
             self::COL_PRICE => 'required|numeric',
-            self::COL_STATUS => 'required|numeric',
-            self::COL_CATEGORY_ID => 'nullable|numeric',
-            self::VAL_ITEM_PER_PAGE => 'nullable|numeric',
-            self::VAL_PAGE => 'nullable|numeric',
+            self::VAL_CATEGORY_ID => 'required|numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
@@ -131,6 +108,14 @@ class Product extends CommonModel
         ];
 
         return CommonModel::validate($data, $validatedFields, $errorCode);
+    }
+
+    /**
+     * Get the service category
+     */
+    public function category()
+    {
+        return $this->belongsTo(ServiceCategory::class, ServiceCategory::COL_ID, self::COL_CATEGORY_ID);
     }
 
     /**

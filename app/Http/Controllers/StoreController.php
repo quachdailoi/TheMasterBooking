@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\CodeAndMessage\StoreMessage as SM;
+use App\Models\File;
 use App\Models\Store;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Socket;
 
@@ -107,12 +109,35 @@ class StoreController extends Controller
                 Store::COL_WORK_SCHEDULE => $workSchedule,
                 Store::COL_STATUS => 1,
             ];
-            if (!Store::create($dataStore)) {
-                return self::responseERR(SM::CREATE_STORE_FAILED, SM::M_CREATE_STORE_FAILED);
+            DB::beginTransaction();
+            $dataImages = [];
+            $maxImages = (int) getenv('MAX_STORE_IMAGE');
+            if ($maxImages == 0) {
+                $maxImages = 1;
             }
 
+            if (!$store = Store::create($dataStore)) {
+                DB::rollBack();
+                return self::responseERR(SM::CREATE_STORE_FAILED, SM::M_CREATE_STORE_FAILED);
+            }
+            for ($i = 0; $i < $maxImages; $i++) {
+                $dataImage = [
+                    File::COL_OWNER_ID => $store->{Store::COL_ID},
+                    File::COL_OWNER_TYPE => Store::class,
+                    File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+                    File::COL_TYPE => File::IMAGE_TYPE,
+                    File::COL_CREATED_AT => now()
+                ];
+                array_push($dataImages, $dataImage);
+            }
+            if (!File::insert($dataImage)) {
+                DB::rollBack();
+                return self::responseERR(SM::CREATE_STORE_FAILED, SM::M_CREATE_STORE_FAILED);
+            }
+            DB::commit();
             return self::responseST(SM::CREATE_STORE_SUCCESS, SM::M_CREATE_STORE_SUCCESS);
         } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX(SM::EXW_CREATE_STORE, $ex->getMessage());
         }
     }

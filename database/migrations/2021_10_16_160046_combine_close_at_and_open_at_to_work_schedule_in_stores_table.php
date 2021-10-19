@@ -27,7 +27,7 @@ class CombineCloseAtAndOpenAtToWorkScheduleInStoresTable extends Migration
      */
     public function down()
     {
-        Schema::table('work_schedule_in_stores', function (Blueprint $table) {
+        Schema::table('stores', function (Blueprint $table) {
             //
         });
     }

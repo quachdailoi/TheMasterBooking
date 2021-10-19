@@ -113,28 +113,16 @@ class User extends Authenticatable
      */
     public function getAvatarAttribute()
     {
-        $avatarUrl = $this->file()->{File::COL_PATH} ?? getenv('DEFAULT_USER_AVATAR_URL');
-        return $avatarUrl;
-    }
-
-    /**
-     * Set the user's avatar.
-     *
-     * @return string
-     */
-    public function setAvatarAttribute($filePath, $status = 1)
-    {
-        return File::updateOrCreate(
-            [
-                File::COL_OWNER_TYPE => User::class,
-                File::COL_OWNER_ID => $this->getAttribute(self::COL_ID),
-            ],
-            [
-                File::COL_TYPE => File::IMAGE_TYPE,
-                File::COL_PATH => $filePath,
-                File::COL_STATUS => $status,
-            ]
-        );
+        $images = $this->files()->select(
+            File::COL_ID . ' as fileId',
+            File::COL_PATH . ' as filePath',
+        )->get()->toArray();
+        if (count($images) == 1) {
+            $images = $images[0];
+        } elseif (count($images) == 0) {
+            $images = getenv('DEFAULT_USER_AVATAR_URL');
+        }
+        return $images;
     }
 
     public static function getTableName()
@@ -197,8 +185,8 @@ class User extends Authenticatable
     /**
      * Get the user's file.
      */
-    public function file()
+    public function files()
     {
-        return $this->morphOne(File::class, 'owner')->first();
+        return $this->morphMany(File::class, 'owner');
     }
 }

@@ -33,7 +33,7 @@ class UserMessage
     const EXW_RESETING_PASSWORD = 'EX500006';
     const EXW_GETTING_USER_PROFILE = 'EX500007';
     const EXW_UPDATING_USER_PROFILE = 'EX500008';
-    const EXW_GET_CART = 'EX5000xxx';
+    const EXW_GET_CART = 'EX5000022';
 
     // error message
     const M_PHONE_NUMBER_EXIST = 'Phone number does exist.';

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
 use App\CodeAndMessage\UserMessage as UM;
+use App\Models\File;
 use App\Models\Product;
 
 class UserController extends Controller
@@ -106,15 +107,33 @@ class UserController extends Controller
             } else {
                 $dataCreate[User::COL_PHONE] = $userId;
             }
-
+            DB::beginTransaction();
             $user = User::create($dataCreate);
-            if (!$user) {
+            $dataImages = [];
+            $maxImages = (int) getenv('MAX_USER_IMAGE');
+            if ($maxImages == 0) {
+                $maxImages = 1;
+            }
+            for ($i = 0; $i < $maxImages; $i++) {
+                $dataImage = [
+                    File::COL_OWNER_ID => $user->{User::COL_ID},
+                    File::COL_OWNER_TYPE => User::class,
+                    File::COL_PATH => getenv('DEFAULT_USER_AVATAR_URL'),
+                    File::COL_TYPE => File::IMAGE_TYPE,
+                    File::COL_CREATED_AT => now()
+                ];
+                array_push($dataImages, $dataImage);
+            }
+            if (!$user or !File::insert($dataImages)) {
+                DB::rollBack();
                 return self::responseERR(UM::REGISTER_FAILED, UM::M_REGISTER_FAILED);
             }
+            DB::commit();
             $tokenObj = $this->getToken($userId, $password);
             $data[User::ACCESS_TOKEN] = $tokenObj->access_token;
             return self::responseST(UM::REGISTER_SUCCESS, UM::M_REGISTER_SUCCESS, $data);
         } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX(UM::EXW_REGISTERING, $ex->getMessage());
         }
     }
@@ -523,8 +542,11 @@ class UserController extends Controller
                     $quantity = $cart[$productId];
                     $dataCart = [
                         Product::COL_ID => $productId,
+                        Product::COL_NAME => $product->{Product::COL_NAME},
+                        Product::COL_DESCRIPTION => $product->{Product::COL_DESCRIPTION},
                         Product::VAL_QUANTITY => $quantity,
-                        Product::VAL_IMAGE => $product[Product::VAL_IMAGE],
+                        Product::VAL_IMAGES => $product[Product::VAL_IMAGES],
+                        Product::COL_PRICE => $product->{Product::COL_PRICE},
                         Product::VAL_AMOUNT => $quantity * $product[Product::COL_PRICE],
                     ];
                     array_push($dataResponse, $dataCart);

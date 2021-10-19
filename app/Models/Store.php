@@ -17,6 +17,7 @@ class Store extends CommonModel
     const COL_ADDRESS = 'address';
     const COL_WORK_SCHEDULE = 'work_schedule';
     const COL_STATUS = 'status';
+    const COL_SERVICE_ID = 'serviceId';
 
     /** value of model */
     const VAL_WORK_SCHEDULE = 'workSchedule';
@@ -29,6 +30,7 @@ class Store extends CommonModel
     const FRIDAY = 'friday';
     const SATURDAY = 'saturday';
     const SUNDAY = 'sunday';
+    const VAL_IMAGES = 'images';
 
     /** relations */
     const CATEGORIES = 'categories';
@@ -73,6 +75,32 @@ class Store extends CommonModel
     }
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['images'];
+
+    /**
+     * Get the user's avatar.
+     *
+     * @return string
+     */
+    public function getImagesAttribute()
+    {
+        $images = $this->files()->select(
+            File::COL_ID . ' as fileId',
+            File::COL_PATH . ' as filePath',
+        )->get()->toArray();
+        if (count($images) == 1) {
+            $images = $images[0];
+        } elseif (count($images) == 0) {
+            $images = getenv('DEFAULT_STORE_IMAGE_URL');
+        }
+        return $images;
+    }
+
+    /**
      * @functionName: validator
      * @type:         public static
      * @description:  validate parameter
@@ -91,6 +119,7 @@ class Store extends CommonModel
             self::VAL_OPEN_AT => 'required|date_format:H:i',
             self::VAL_CLOSE_AT => 'required|date_format:H:i|after:openAt',
             self::COL_STATUS => 'nullable|numeric',
+            self::COL_SERVICE_ID => 'numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
@@ -118,9 +147,9 @@ class Store extends CommonModel
     /**
      * Get the user's file.
      */
-    public function file()
+    public function files()
     {
-        return $this->morphOne(File::class, 'owner')->first();
+        return $this->morphMany(File::class, 'owner');
     }
 
     /**

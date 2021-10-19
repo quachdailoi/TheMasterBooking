@@ -48,33 +48,37 @@ class File extends CommonModel
     const PRODUCT_TYPE = 'product';
     const SERVICE_TYPE = 'service';
     const STORE_TYPE = 'store';
+    const SERVICE_CATEGORY_TYPE = 'service_category';
 
     /** Owner types */
-    const OWNER_TYPE_MODELS = [
-        File::USER_TYPE => User::class,
-        File::PRODUCT_TYPE => Product::class,
-        File::SERVICE_TYPE => '',
-        File::STORE_TYPE => '',
+    const OWNER_TYPE_KEYS = [
+        User::class => File::USER_TYPE,
+        Product::class => File::PRODUCT_TYPE,
+        Service::class => File::SERVICE_TYPE,
+        Store::class => File::STORE_TYPE,
+        ServiceCategory::class => File::SERVICE_TYPE,
     ];
 
     /** Owner type right for custmer */
     const CUSTOMER_ONWNER_TYPE_RIGHT = [
-        File::USER_TYPE => true,
+        User::class."" => true,
     ];
 
     /** Owner type right for manager */
     const MANAGER_OWNER_TYPE_RIGHT = [
-        File::PRODUCT_TYPE => true,
-        File::SERVICE_TYPE => true,
-        FIle::STORE_TYPE => true,
+        Product::class => true,
+        Service::class => true,
+        ServiceCategory::class => true,
+        Store::class => true,
     ];
 
     /** Owner type right for admin */
     const ADMIN_OWNER_TYPE_RIGHT = [
-        File::USER_TYPE => true,
-        File::PRODUCT_TYPE => true,
-        File::SERVICE_TYPE => true,
-        FIle::STORE_TYPE => true,
+        User::class => true,
+        Product::class => true,
+        Service::class => true,
+        Store::class => true,
+        ServiceCategory::class => true,
     ];
 
     const OWNER_TYPE_RIGHT = [
@@ -136,7 +140,7 @@ class File extends CommonModel
             self::COL_STATUS => 'nullable|numeric|between:0,1',
             self::COL_TYPE => 'required|numeric|between:0,2',
             self::VAL_INDEX => 'nullable|numeric',
-            self::VAL_FILE_ID => 'nullable|numeric',
+            self::VAL_FILE_ID => 'required|numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',

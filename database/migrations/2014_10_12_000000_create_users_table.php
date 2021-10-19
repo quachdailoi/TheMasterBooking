@@ -23,7 +23,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->unsignedTinyInteger('gender')->nullable();
             $table->timestamp('birthDay')->nullable();
-            $table->unsignedTinyInteger('status');
+            $table->unsignedTinyInteger('status')->default(1);
             $table->unsignedBigInteger('role_id');
             $table->unsignedBigInteger('store_id')->nullable();
             $table->rememberToken();
