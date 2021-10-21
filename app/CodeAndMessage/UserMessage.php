@@ -23,6 +23,10 @@ class UserMessage
     const EMAIL_ADDRESS_EXIST = 'ERR400015';
     const REGISTER_FAILED = 'ERR400016';
     const UPDATE_USER_PROFILE_FAILED = 'ERR400023';
+    const INVALID_CART_PARAMETER = 'IER400xxx';
+    const CART_HAVE_INVALID_PRODUCT_ID = 'IER400xxx';
+    const CART_HAVE_INVALID_QUANTITY = 'IER400xxx';
+    const UPDATE_CART_FAILED = 'ERR400xxx';
 
     //internal error code
     const EXW_REGISTERING = 'EX500001';
@@ -34,6 +38,7 @@ class UserMessage
     const EXW_GETTING_USER_PROFILE = 'EX500007';
     const EXW_UPDATING_USER_PROFILE = 'EX500008';
     const EXW_GET_CART = 'EX5000022';
+    const EXW_UPDATE_CART = 'EX500xxx';
 
     // error message
     const M_PHONE_NUMBER_EXIST = 'Phone number does exist.';
@@ -54,7 +59,10 @@ class UserMessage
     const M_EMAIL_ADDRESS_EXIST = 'Email address does exist.';
     const M_REGISTER_FAILED = 'Register failed.';
     const M_UPDATE_USER_PROFILE_FAILED = 'Update user profile failed.';
-
+    const M_INVALID_CART_PARAMETER = 'Invalid cart parameter.';
+    const M_CART_HAVE_INVALID_PRODUCT_ID = 'Cart have invalid product id.';
+    const M_CART_HAVE_INVALID_QUANTITY = 'Product quantity is invalid.';
+    const M_UPDATE_CART_FAILED = 'Update cart failed.';
 
     // success code
     const REGISTER_SUCCESS = 'ST200001';
@@ -66,6 +74,7 @@ class UserMessage
     const GET_USER_PROFILE_SUCCESS = 'ST200007';
     const UPDATE_USER_PROFILE_SUCCESS = 'ST200008';
     const GET_CART_SUCCESS = 'ST200017';
+    const UPDATE_CART_SUCCESS = 'ST200xxx';
 
     // success message
     const M_REGISTER_SUCCESS = 'Register successfully.';
@@ -77,4 +86,5 @@ class UserMessage
     const M_GET_USER_PROFILE_SUCCESS = 'Get user profile successfully.';
     const M_UPDATE_USER_PROFILE_SUCCESS = 'Update user profile successfully.';
     const M_GET_CART_SUCCESS = 'Get cart successfully.';
+    const M_UPDATE_CART_SUCCESS = 'Update cart success';
 }

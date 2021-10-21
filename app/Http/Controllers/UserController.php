@@ -32,6 +32,7 @@ class UserController extends Controller
     const API_URL_GET_USER_PROFILE = '/get-profile';
     const API_URL_UPDATE_USER_PROFILE = '/update-profile';
     const API_URL_GET_CART = '/get-cart';
+    const API_URL_UPDATE_CART = '/update-cart';
 
     /** Method */
     const METHOD_LOGIN = 'login';
@@ -43,6 +44,7 @@ class UserController extends Controller
     const METHOD_GET_PROFILE = 'getProfile';
     const METHOD_UPDATE_PROFILE = 'updateProfile';
     const METHOD_GET_CART = 'getCart';
+    const METHOD_UPDATE_CART = 'updateCart';
 
     // type of verified code
     const TYPE_REGISTER = '0';
@@ -477,7 +479,7 @@ class UserController extends Controller
     public function getProfile()
     {
         try {
-            $currentUser= Auth::user();
+            $currentUser = Auth::user();
 
             return self::responseST(UM::GET_USER_PROFILE_SUCCESS, UM::M_GET_USER_PROFILE_SUCCESS, $currentUser);
         } catch (Exception $ex) {
@@ -555,6 +557,42 @@ class UserController extends Controller
             return self::responseST(UM::GET_CART_SUCCESS, UM::M_GET_CART_SUCCESS, $dataResponse);
         } catch (Exception $ex) {
             return self::responseEX(UM::EXW_GET_CART, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: updateCart
+     * @type:         public
+     * @param:        Empty
+     * @return:       String(Json)
+     */
+    public function updateCart(Request $request)
+    {
+        try {
+            $cart = $request->{User::COL_CART};
+            if (!$cart) {
+                return self::responseERR(UM::INVALID_CART_PARAMETER, UM::M_INVALID_CART_PARAMETER);
+            }
+            $productIds = array_keys($cart);
+            foreach ($productIds as $productId) {
+                if (!Product::find($productId)) {
+                    return self::responseERR(UM::CART_HAVE_INVALID_PRODUCT_ID, UM::M_CART_HAVE_INVALID_PRODUCT_ID);
+                }
+            }
+            $productQuantities = array_values($cart);
+            foreach ($productQuantities as $quantity) {
+                if ((int) $quantity < 0) {
+                    return self::responseERR(UM::CART_HAVE_INVALID_QUANTITY, UM::M_CART_HAVE_INVALID_QUANTITY);
+                }
+            }
+            $user = Auth::user();
+            $user->{User::COL_CART} = $cart;
+            if (!$user->save()) {
+                return self::responseERR(UM::UPDATE_CART_FAILED, UM::M_UPDATE_CART_FAILED);
+            }
+            return self::responseST(UM::UPDATE_CART_SUCCESS, UM::M_UPDATE_CART_SUCCESS);
+        } catch (Exception $ex) {
+            return self::responseEX(UM::EXW_UPDATE_CART, $ex->getMessage());
         }
     }
 }

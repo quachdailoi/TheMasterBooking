@@ -62,7 +62,8 @@ class ProductController extends Controller
             if ($categoryId and !Category::find($categoryId)) {
                 $query = $query->where(Product::COL_CATEGORY_ID, $categoryId);
             }
-            $query = $query->where(Product::COL_NAME, "like", "%$searchValue%");
+            $searchValue = strtolower($searchValue);
+            $query = $query->where(DB::raw("LOWER(".Product::COL_NAME.")"), "like", "%$searchValue%");
             $copyQuery = $query;
             $count = $query->count();
             $maxPages = ceil($count/$itemPerPage);
@@ -288,7 +289,7 @@ class ProductController extends Controller
                 return self::responseERR(PM::NOT_FOUND_PRODUCT, PM::M_NOT_FOUND_PRODUCT);
             }
             DB::beginTransaction();
-            if (!$product->files()->delete() or $product->delete()) {
+            if (!$product->files()->delete() or !$product->delete()) {
                 DB::rollBack();
                 return self::responseERR(PM::DELETE_PRODUCT_FAILED, PM::M_DELETE_PRODUCT_FAILED);
             }

@@ -33,6 +33,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => UserC::PREFIX], function (
     Route::get(UserC::API_URL_GET_USER_PROFILE, [UserC::class, UserC::METHOD_GET_PROFILE]);
     Route::post(UserC::API_URL_UPDATE_USER_PROFILE, [UserC::class, UserC::METHOD_UPDATE_PROFILE]);
     Route::get(UserC::API_URL_GET_CART, [UserC::class, UserC::METHOD_GET_CART]);
+    Route::post(UserC::API_URL_UPDATE_CART, [UserC::class, UserC::METHOD_UPDATE_CART]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => FileC::PREFIX], function () {

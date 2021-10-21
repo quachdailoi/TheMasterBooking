@@ -179,7 +179,6 @@ class DatabaseSeeder extends Seeder
         Category::create([
             Category::COL_ID => 1,
             Category::COL_NAME => 'Sản phẩm cho nam',
-            Category::COL_STORE_ID => 1,
         ]);
 
         \App\Models\Product::factory(50)->create();
