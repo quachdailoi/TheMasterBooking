@@ -65,6 +65,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function 
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceC::PREFIX], function () {
     Route::post(ServiceC::API_URL_GET_SERVICES, [ServiceC::class, ServiceC::METHOD_GET_SERVICES]);
+    Route::post(ServiceC::API_URL_CREATE_SERVICE, [ServiceC::class, ServiceC::METHOD_CREATE_SERVICE]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceCategoryC::PREFIX], function () {

@@ -37,6 +37,7 @@ class Controller extends BaseController
         ];
         return response()->json($response, 200);
     }
+
     public static function responseIER($message, $detailsCode = self::CODE_INVALID_FIELD)
     {
         $response = [
@@ -46,6 +47,7 @@ class Controller extends BaseController
         ];
         return response()->json($response, 400);
     }
+
     public static function responseEX($detailsCode, $message)
     {
         $response = [
@@ -55,6 +57,7 @@ class Controller extends BaseController
         ];
         return response()->json($response, 500);
     }
+
     public static function responseERR($detailsCode, $message, $data = [])
     {
         $response = [
@@ -65,6 +68,7 @@ class Controller extends BaseController
         ];
         return response()->json($response, 400);
     }
+
     public static function responseCommon($code, $detailsCode, $message)
     {
         $response = [
@@ -74,6 +78,7 @@ class Controller extends BaseController
         ];
         return response()->json($response, $code);
     }
+
     public static function responseObject($response)
     {
         return response()->json($response, $response[self::KEY_CODE] ?? 400);

@@ -76,8 +76,7 @@ class Service extends CommonModel
      *
      * @var array
      */
-    protected $casts = [
-    ];
+    protected $casts = [];
 
     public static function getTableName()
     {

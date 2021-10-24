@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\CodeAndMessage\ServiceM;
 use App\Traits\SelfReferenceTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -73,8 +74,7 @@ class ServiceCategory extends CommonModel
      *
      * @var array
      */
-    protected $casts = [
-    ];
+    protected $casts = [];
 
     public static function getTableName()
     {
@@ -110,7 +110,7 @@ class ServiceCategory extends CommonModel
      */
     public function services()
     {
-        return $this->hasMany(Service::class, Service::COL_SERVICE_ID, self::COL_ID);
+        return $this->hasMany(Service::class, Service::COL_CATEGORY_ID, self::COL_ID);
     }
 
     /**
@@ -119,5 +119,14 @@ class ServiceCategory extends CommonModel
     public function files()
     {
         return $this->morphMany(File::class, 'owner');
+    }
+
+    public static function isExist($categoryId)
+    {
+        $categoryS = ServiceCategory::find($categoryId);
+        if (!$categoryS) {
+            return self::responseERR(ServiceM::NOT_FOUND_SERVICE_CATEGORY, ServiceM::M_NOT_FOUND_SERVICE_CATEGORY);
+        }
+        return true;
     }
 }

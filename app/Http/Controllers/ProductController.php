@@ -300,4 +300,20 @@ class ProductController extends Controller
             return self::responseEX(PM::EXW_DELETE_PRODUCT, $ex->getMessage());
         }
     }
+
+    /**
+     * @functionName: getAll
+     * @type:         public
+     * @param:        Request
+     * @return:       String(Json)
+     */
+    public function getAll()
+    {
+        try {
+            $products = Product::all();
+            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $products);
+        } catch (Exception $ex) {
+            return self::responseEX(PM::EXW_GET_PRODUCTS, $ex->getMessage());
+        }
+    }
 }
