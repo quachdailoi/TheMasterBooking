@@ -14,33 +14,21 @@ class CategoryController extends Controller
     const PREFIX = 'category';
 
     /** Api url */
-    const API_URL_GET_CATEGORY_BY_STORE_ID = '/get-categories-by-store-id';
+    const API_URL_GET_ALL = '/get-all';
 
     /** Method */
-    const METHOD_GET_CATEGORY_BY_STORE_ID = 'getCategoryByStoreId';
+    const METHOD_GET_ALL = 'getAll';
 
     /**
      * @functionName: register
      * @type:         public
-     * @param:        Request $request
+     * @param:        Empty
      * @return:       String(Json)
      */
-    public function getCategoryByStoreId(Request $request)
+    public function getAll()
     {
         try {
-            $storeId = $request->{Category::VAL_STORE_ID};
-
-            $validator = Category::validator([
-                Category::COL_STORE_ID => $storeId,
-            ]);
-            if ($validator->fails()) {
-                return self::responseIER($validator->errors()->first());
-            }
-            $store = Store::find($storeId);
-            if (!$store) {
-                return self::responseERR(CM::NOT_FOUND_STORE, CM::M_NOT_FOUND_STORE);
-            }
-            $categories = $store->{Store::CATEGORIES};
+            $categories = Category::all();
 
             return self::responseST(CM::GET_CATEGORIES_SUCCESS, CM::M_GET_CATEGORIES_SUCCESS, $categories);
         } catch (Exception $ex) {

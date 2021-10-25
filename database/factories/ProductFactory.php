@@ -26,7 +26,7 @@ class ProductFactory extends Factory
             Product::COL_PRICE => $this->faker->randomFloat(null, 0, 100),
             Product::COL_QUANTITY => $this->faker->numberBetween(0, 50),
             Product::COL_DESCRIPTION => $this->faker->text(100),
-            Product::COL_CATEGORY_ID => 1,
+            Product::COL_CATEGORY_ID => 2,
         ];
     }
 }

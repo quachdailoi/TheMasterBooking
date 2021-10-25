@@ -41,7 +41,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => FileC::PREFIX], function (
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => CategoryC::PREFIX], function () {
-    Route::post(CategoryC::API_URL_GET_CATEGORY_BY_STORE_ID, [CategoryC::class, CategoryC::METHOD_GET_CATEGORY_BY_STORE_ID]);
+    Route::post(CategoryC::API_URL_GET_ALL, [CategoryC::class, CategoryC::METHOD_GET_ALL]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], function () {
@@ -75,4 +75,5 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ServiceCategoryC::PREFIX],
 
 Route::group(['middleware' => 'auth:api', 'prefix' => HomeController::PREFIX], function () {
     Route::get(HomeController::API_URL_GET_DATA, [HomeController::class, HomeController::METHOD_GET_DATA]);
+    Route::get(HomeController::API_URL_GET_ALL_CATEGORIES_AND_PRODUCTS, [HomeController::class, HomeController::METHOD_GET_ALL_CATEGORIES_AND_PRODUCTS]);
 });
