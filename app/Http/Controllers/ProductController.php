@@ -24,6 +24,7 @@ class ProductController extends Controller
     const API_URL_CREATE_PRODUCT = '/create-product';
     const API_URL_UPDATE_PRODUCT = '/update-product/{productId}';
     const API_URL_DELETE_PRODUCT = '/delete-product/{productId}';
+    const API_URL_GET_ALL = '/get-all';
 
     /** Method */
     const METHOD_GET_PRODUCTS = 'getProducts';
@@ -32,6 +33,7 @@ class ProductController extends Controller
     const METHOD_CREATE_PRODUCT = 'createProduct';
     const METHOD_UPDATE_PRODUCT = 'updateProduct';
     const METHOD_DELETE_PRODUCT = 'deleteProduct';
+    const METHOD_GET_ALL = 'getAll';
 
     /**
      * @functionName: getProducts

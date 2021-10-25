@@ -51,6 +51,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], functio
     Route::post(ProductC::API_URL_CREATE_PRODUCT, [ProductC::class, ProductC::METHOD_CREATE_PRODUCT]);
     Route::post(ProductC::API_URL_UPDATE_PRODUCT, [ProductC::class, ProductC::METHOD_UPDATE_PRODUCT]);
     Route::delete(ProductC::API_URL_DELETE_PRODUCT, [ProductC::class, ProductC::METHOD_DELETE_PRODUCT]);
+    Route::get(ProductC::API_URL_GET_ALL, [ProductC::class, ProductC::METHOD_GET_ALL]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductOrderC::PREFIX], function () {
