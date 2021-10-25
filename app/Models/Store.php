@@ -18,6 +18,7 @@ class Store extends CommonModel
     const COL_WORK_SCHEDULE = 'work_schedule';
     const COL_STATUS = 'status';
     const COL_SERVICE_ID = 'serviceId';
+    const COL_CITY = 'city';
 
     /** value of model */
     const VAL_WORK_SCHEDULE = 'workSchedule';
@@ -45,6 +46,7 @@ class Store extends CommonModel
         self::COL_NAME,
         self::COL_ADDRESS,
         self::COL_WORK_SCHEDULE,
+        self::COL_CITY,
         self::COL_STATUS,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
@@ -120,6 +122,7 @@ class Store extends CommonModel
             self::VAL_CLOSE_AT => 'required|date_format:H:i|after:openAt',
             self::COL_STATUS => 'nullable|numeric',
             self::COL_SERVICE_ID => 'numeric',
+            self::COL_CITY => 'required',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
@@ -150,13 +153,5 @@ class Store extends CommonModel
     public function files()
     {
         return $this->morphMany(File::class, 'owner');
-    }
-
-    /**
-     * Get the store's categories.
-     */
-    public function categories()
-    {
-        return $this->hasMany(Category::class, Category::COL_STORE_ID, self::COL_ID);
     }
 }

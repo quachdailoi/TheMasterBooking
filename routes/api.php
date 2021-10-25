@@ -41,7 +41,8 @@ Route::group(['middleware' => 'auth:api', 'prefix' => FileC::PREFIX], function (
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => CategoryC::PREFIX], function () {
-    Route::post(CategoryC::API_URL_GET_ALL, [CategoryC::class, CategoryC::METHOD_GET_ALL]);
+    Route::get(CategoryC::API_URL_GET_ALL, [CategoryC::class, CategoryC::METHOD_GET_ALL]);
+    Route::post(CategoryC::API_URL_CREATE_CATEGORY, [CategoryC::class, CategoryC::METHOD_CREATE]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], function () {
@@ -62,15 +63,19 @@ Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function 
     Route::get(StoreC::API_URL_GET_STORES, [StoreC::class, StoreC::METHOD_GET_STORES]);
     Route::get(StoreC::API_URL_GET_STORE, [StoreC::class, StoreC::METHOD_GET_STORE]);
     Route::post(StoreC::API_URL_CREATE_STORE, [StoreC::class, StoreC::METHOD_CREATE_STORE]);
+    Route::get(StoreC::API_URL_GET_CITIES_HAVE_STORE, [StoreC::class, StoreC::METHOD_GET_CITIES_HAVE_STORE]);
+    Route::post(StoreC::API_URL_GET_STORE_BY_CITY, [StoreC::class, StoreC::METHOD_GET_STORE_BY_CITY]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceC::PREFIX], function () {
     Route::post(ServiceC::API_URL_GET_SERVICES, [ServiceC::class, ServiceC::METHOD_GET_SERVICES]);
     Route::post(ServiceC::API_URL_CREATE_SERVICE, [ServiceC::class, ServiceC::METHOD_CREATE_SERVICE]);
+    Route::get(ServiceC::API_URL_GET_ALL_SERVICES_WITH_CATEGORY, [ServiceC::class, ServiceC::METHOD_GET_ALL_SERVICES_WITH_CATEGORY]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceCategoryC::PREFIX], function () {
     Route::get(ServiceCategoryC::API_URL_GET_CATEGORIES, [ServiceCategoryC::class, ServiceCategoryC::METHOD_GET_ALL]);
+    Route::post(ServiceCategoryC::API_URL_CREATE, [ServiceCategoryC::class, ServiceCategoryC::METHOD_CREATE]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => HomeController::PREFIX], function () {

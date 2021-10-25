@@ -14,10 +14,8 @@ class Category extends CommonModel
 
     /** Column of table */
     const COL_NAME = 'name';
-    const COL_STORE_ID = 'store_id';
 
     /** value of model */
-    const VAL_STORE_ID = 'storeId';
 
     /**
      * The attributes that are mass assignable.
@@ -26,7 +24,6 @@ class Category extends CommonModel
      */
     protected $fillable = [
         self::COL_NAME,
-        self::COL_STORE_ID,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
         self::COL_DELETED_AT,
@@ -63,8 +60,7 @@ class Category extends CommonModel
     public static function validator(array $data)
     {
         $validatedFields = [
-            self::COL_NAME => 'required|numeric',
-            self::COL_STORE_ID => 'required|numeric',
+            self::COL_NAME => 'required',
         ];
         $errorCode = [
             'required' => ':attribute is required.',

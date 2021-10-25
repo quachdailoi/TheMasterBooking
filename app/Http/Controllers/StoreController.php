@@ -20,11 +20,15 @@ class StoreController extends Controller
     const API_URL_GET_STORES = '/get-stores';
     const API_URL_GET_STORE = '/get-store/{storeId}';
     const API_URL_CREATE_STORE = '/create';
+    const API_URL_GET_CITIES_HAVE_STORE = '/get-cities-have-store';
+    const API_URL_GET_STORE_BY_CITY = '/get-store-by-city';
 
     /** Method */
     const METHOD_GET_STORES = 'getStores';
     const METHOD_GET_STORE = 'getStore';
     const METHOD_CREATE_STORE = 'createStore';
+    const METHOD_GET_CITIES_HAVE_STORE = 'getCitiesHaveStore';
+    const METHOD_GET_STORE_BY_CITY = 'getStoreByCity';
 
     /**
      * @functionName: getStores
@@ -78,36 +82,25 @@ class StoreController extends Controller
             $phone = $request->{Store::COL_PHONE};
             $name = $request->{Store::COL_NAME};
             $address = $request->{Store::COL_ADDRESS};
-            $workSchedule = $request->{Store::VAL_WORK_SCHEDULE};
+            $city = $request->{Store::COL_CITY};
 
             $validator = Store::validator([
                 Store::COL_PHONE => $phone,
                 Store::COL_NAME => $name,
                 Store::COL_ADDRESS => $address,
-                Store::VAL_WORK_SCHEDULE => $workSchedule,
+                Store::COL_CITY => $city,
             ]);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors())->first();
             }
-            if (gettype($workSchedule) != 'array') {
-                return self::responseERR(SM::INVALID_WORK_SCHEDULE_FORMAT, SM::M_INVALID_WORK_SCHEDULE_FORMAT);
-            }
-            foreach ($workSchedule as $day => $time) {
-                if (gettype($time) != 'array') {
-                    return self::responseERR(SM::INVALID_WORK_SCHEDULE_FORMAT, SM::M_INVALID_WORK_SCHEDULE_FORMAT);
-                }
-                $validate = Store::validator($time);
-                //return $time;
-                if ($validate->fails()) {
-                    return self::responseIER($validate->errors()->first());
-                }
-            }
+            $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
             $dataStore = [
                 Store::COL_PHONE => $phone,
                 Store::COL_NAME => $name,
                 Store::COL_ADDRESS => $address,
-                Store::COL_WORK_SCHEDULE => $workSchedule,
+                Store::COL_CITY => $city,
                 Store::COL_STATUS => 1,
+                Store::COL_WORK_SCHEDULE => []
             ];
             DB::beginTransaction();
             $dataImages = [];
@@ -134,11 +127,65 @@ class StoreController extends Controller
                 DB::rollBack();
                 return self::responseERR(SM::CREATE_STORE_FAILED, SM::M_CREATE_STORE_FAILED);
             }
+            if ($request->has('file')) {
+                $fileId = $store->files->first()->{File::COL_ID};
+                $request->fileId = $fileId;
+                $request->type = File::IMAGE_TYPE;
+                $fileController = new FileController();
+                $responseSaveFile = $fileController->uploadFileS3($request)->getData();
+                if ($responseSaveFile->code != 200) {
+                    DB::rollBack();
+                    return self::responseERR(SM::CREATE_STORE_FAILED, SM::M_CREATE_STORE_FAILED);
+                }
+            }
             DB::commit();
-            return self::responseST(SM::CREATE_STORE_SUCCESS, SM::M_CREATE_STORE_SUCCESS);
+            $store = Store::find($store->{Store::COL_ID});
+            return self::responseST(SM::CREATE_STORE_SUCCESS, SM::M_CREATE_STORE_SUCCESS, $store);
         } catch (Exception $ex) {
             DB::rollBack();
             return self::responseEX(SM::EXW_CREATE_STORE, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getCitiesHaveStore
+     * @type:         public
+     * @param:        Empty
+     * @return:       String(Json)
+     */
+    public function getCitiesHaveStore()
+    {
+        try {
+            $cities = Store::all()->pluck(Store::COL_CITY)->toArray();
+            $cities = array_unique($cities);
+
+            return self::responseST('ST200xxx', 'Get cities have store.', $cities);
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getStoreByCity
+     * @type:         public
+     * @param:        Request
+     * @return:       String(Json)
+     */
+    public function getStoreByCity(Request $request)
+    {
+        try {
+            $city = $request->{Store::COL_CITY};
+            $validator = Store::validator([
+                Store::COL_CITY => $city,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $stores = Store::where(Store::COL_CITY, $city)->get();
+
+            return self::responseST('ST200xxx', 'Get cities have store.', $stores);
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
 }

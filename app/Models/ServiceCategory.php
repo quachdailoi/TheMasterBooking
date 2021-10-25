@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\CodeAndMessage\ServiceM;
+use App\Http\Controllers\Controller;
 use App\Traits\SelfReferenceTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -95,7 +96,7 @@ class ServiceCategory extends CommonModel
         $validatedFields = [
             self::COL_ID => 'numeric',
             self::COL_NAME => 'required',
-            self::VAL_PARENT_ID => 'required|numeric',
+            self::VAL_PARENT_ID => 'nullable|numeric',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
@@ -125,7 +126,7 @@ class ServiceCategory extends CommonModel
     {
         $categoryS = ServiceCategory::find($categoryId);
         if (!$categoryS) {
-            return self::responseERR(ServiceM::NOT_FOUND_SERVICE_CATEGORY, ServiceM::M_NOT_FOUND_SERVICE_CATEGORY);
+            return Controller::responseERR(ServiceM::NOT_FOUND_SERVICE_CATEGORY, ServiceM::M_NOT_FOUND_SERVICE_CATEGORY);
         }
         return true;
     }

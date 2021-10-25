@@ -175,6 +175,7 @@ class ProductController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
+            $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
             if (!Category::find($categoryId)) {
                 return self::responseERR(PM::NOT_FOUND_CATEGORY, PM::M_NOT_FOUND_CATEGORY);
             }
@@ -198,7 +199,7 @@ class ProductController extends Controller
             for ($i = 0; $i < $maxImages; $i++) {
                 $dataImage = [
                     File::COL_OWNER_ID => $product->{Product::COL_ID},
-                    File::COL_OWNER_TYPE => Store::class,
+                    File::COL_OWNER_TYPE => Product::class,
                     File::COL_PATH => getenv('DEFAULT_PRODUCT_IMAGE_URL'),
                     File::COL_TYPE => File::IMAGE_TYPE,
                     File::COL_CREATED_AT => now()
@@ -209,9 +210,22 @@ class ProductController extends Controller
                 DB::rollBack();
                 return self::responseERR(PM::CREATE_PRODUCT_FAILED, PM::M_CREATE_PRODUCT_FAILED);
             }
+            if ($request->has('file')) {
+                $fileId = $product->files->first()->{File::COL_ID};
+                $request->fileId = $fileId;
+                $request->type = File::IMAGE_TYPE;
+                $fileController = new FileController();
+                $responseSaveFile = $fileController->uploadFileS3($request)->getData();
+                if ($responseSaveFile->code != 200) {
+                    DB::rollBack();
+                    return self::responseERR(PM::CREATE_PRODUCT_FAILED, PM::M_CREATE_PRODUCT_FAILED);
+                }
+            }
             DB::commit();
+            $product = Product::find($product->{Product::COL_ID});
             return self::responseST(PM::CREATE_PRODUCT_SUCCESS, PM::M_CREATE_PRODUCT_SUCCESS, $product);
         } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX(PM::EXW_CREAT_PRODUCT, $ex->getMessage());
         }
     }
@@ -245,6 +259,7 @@ class ProductController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
+            $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
             if (!Category::find($categoryId)) {
                 return self::responseERR(PM::NOT_FOUND_CATEGORY, PM::M_NOT_FOUND_CATEGORY);
             }
@@ -252,6 +267,7 @@ class ProductController extends Controller
             if (!$product) {
                 return self::responseERR(PM::NOT_FOUND_PRODUCT, PM::M_NOT_FOUND_PRODUCT);
             }
+            DB::beginTransaction();
             $product->{Product::COL_NAME} = $name;
             $product->{Product::COL_QUANTITY} = $quantity;
             $product->{Product::COL_PRICE} = $price;
@@ -260,10 +276,25 @@ class ProductController extends Controller
             $product->{Product::COL_STATUS} = $status;
             $rsSave = $product->save();
             if (!$rsSave) {
+                DB::rollBack();
                 return self::responseERR(PM::UPDATE_PRODUCT_FAILED, PM::M_UPDATE_PRODUCT_FAILED);
             }
+            if ($request->has('file')) {
+                $fileId = $product->files->first()->{File::COL_ID};
+                $request->fileId = $fileId;
+                $request->type = File::IMAGE_TYPE;
+                $fileController = new FileController();
+                $responseSaveFile = $fileController->uploadFileS3($request)->getData();
+                if ($responseSaveFile->code != 200) {
+                    DB::rollBack();
+                    return self::responseERR(PM::UPDATE_PRODUCT_FAILED, PM::M_UPDATE_PRODUCT_FAILED);
+                }
+            }
+            DB::commit();
+            $product = Product::find($product->{Product::COL_ID});
             return self::responseST(PM::UPDATE_PRODUCT_SUCCESS, PM::M_UPDATE_PRODUCT_SUCCESS, $product);
         } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX(PM::EXW_UPDATE_PRODUCT, $ex->getMessage());
         }
     }

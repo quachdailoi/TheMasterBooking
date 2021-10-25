@@ -56,7 +56,7 @@ class File extends CommonModel
         Product::class => File::PRODUCT_TYPE,
         Service::class => File::SERVICE_TYPE,
         Store::class => File::STORE_TYPE,
-        ServiceCategory::class => File::SERVICE_TYPE,
+        ServiceCategory::class => File::SERVICE_CATEGORY_TYPE,
     ];
 
     /** Owner type right for custmer */
