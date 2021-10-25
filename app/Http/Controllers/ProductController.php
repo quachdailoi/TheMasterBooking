@@ -312,8 +312,8 @@ class ProductController extends Controller
     public function getAll()
     {
         try {
-            $products = Product::all();
-            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $products);
+            $categories = Category::with('products')->get();
+            return self::responseST(PM::GET_PRODUCTS_SUCCESS, PM::M_GET_PRODUCTS_SUCCESS, $categories);
         } catch (Exception $ex) {
             return self::responseEX(PM::EXW_GET_PRODUCTS, $ex->getMessage());
         }
