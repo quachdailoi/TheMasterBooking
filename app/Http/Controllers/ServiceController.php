@@ -20,8 +20,8 @@ class ServiceController extends Controller
     const API_URL_GET_SERVICES = '/get-services-by-category';
     const API_URL_CREATE_SERVICE = '/create';
     const API_URL_GET_ALL_SERVICES_WITH_CATEGORY = '/get-all-servicies-with-category';
-    const API_URL_UPDATE_SERVICE = '/update-service';
-    const API_URL_DELETE_SERVICE = '/delete-service';
+    const API_URL_UPDATE_SERVICE = '/update-service/{serviceId}';
+    const API_URL_DELETE_SERVICE = '/delete-service/{serviceId}';
 
     /** Method */
     const METHOD_GET_SERVICES = 'getServicesByCategory';
