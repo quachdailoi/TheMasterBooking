@@ -38,9 +38,9 @@ class File extends CommonModel
 
     /** file validation */
     const FILE_VALIDATIONS = [
-        'required|image|mimes:jpeg,png,jpg,gif,svg|mimetypes:image/gif,image/jpeg,image/png|max:2048',
-        'required|max:2048|mimes:video/x-ms-asf,video/x-flv,video/mp4,application/x-mpegURL,video/MP2T,video/3gpp',
-        'required|max:2048'
+        'nullable|image|mimes:jpeg,png,jpg,gif,svg|mimetypes:image/gif,image/jpeg,image/png|max:2048',
+        'nullable|max:2048|mimes:video/x-ms-asf,video/x-flv,video/mp4,application/x-mpegURL,video/MP2T,video/3gpp',
+        'nullable|max:2048'
     ];
 
     /** owner file type */
