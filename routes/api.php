@@ -68,7 +68,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function 
     Route::get(StoreC::API_URL_GET_CITIES_HAVE_STORE, [StoreC::class, StoreC::METHOD_GET_CITIES_HAVE_STORE]);
     Route::post(StoreC::API_URL_GET_STORE_BY_CITY, [StoreC::class, StoreC::METHOD_GET_STORE_BY_CITY]);
     Route::post(StoreC::API_URL_UPDATE_STORE, [StoreC::class, StoreC::METHOD_UPDATE_STORE]);
-    Route::post(StoreC::API_URL_DELETE_STORE, [StoreC::class, StoreC::METHOD_DELETE_STORE]);
+    Route::delete(StoreC::API_URL_DELETE_STORE, [StoreC::class, StoreC::METHOD_DELETE_STORE]);
     Route::post(StoreC::API_URL_UPDATE_WORK_SCHEDULE, [StoreC::class, StoreC::METHOD_UPDATE_WORK_SCHEDULE]);
     Route::get(StoreC::API_URL_GET_BOOKING_TIME, [StoreC::class, StoreC::METHOD_GET_BOOKING_TIME]);
 });

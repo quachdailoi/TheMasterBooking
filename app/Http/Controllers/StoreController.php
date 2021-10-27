@@ -350,7 +350,7 @@ class StoreController extends Controller
     }
 
     /**
-     * @functionName: updateWorkSchedule
+     * @functionName: getBookingTime
      * @type:         public
      * @param:        int $storeId
      * @return:       String(Json)
