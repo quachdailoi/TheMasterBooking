@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Store extends CommonModel
 {
@@ -19,6 +22,7 @@ class Store extends CommonModel
     const COL_STATUS = 'status';
     const COL_SERVICE_ID = 'serviceId';
     const COL_CITY = 'city';
+    const COL_SERVICE_SLOTS = 'service_slots';
 
     /** value of model */
     const VAL_WORK_SCHEDULE = 'workSchedule';
@@ -32,6 +36,7 @@ class Store extends CommonModel
     const SATURDAY = 'saturday';
     const SUNDAY = 'sunday';
     const VAL_IMAGES = 'images';
+    const VAL_SERVICE_SLOTS = 'serviceSlots';
 
     /** relations */
     const CATEGORIES = 'categories';
@@ -134,17 +139,63 @@ class Store extends CommonModel
         return CommonModel::validate($data, $validatedFields, $errorCode);
     }
 
-    public static function workScheduleGen(array $monday, array $tuesday, array $wednesday, array $thursday, array $priday, array $saturday, array $sunday)
+    public static function checkExist($storeId) {
+        return (bool)Store::find($storeId);
+    }
+
+    public static function getBookingDays($store)
     {
-        return [
-            'moday' => $monday,
-            'tuesday' => $tuesday,
-            'wednesday' => $wednesday,
-            'thursday' => $thursday,
-            'priday' => $priday,
-            'saturday' => $saturday,
-            'sunday' => $sunday,
-        ];
+        $workSchedule = array_values($store->{Store::COL_WORK_SCHEDULE});
+        $bookingDayWeek = [];
+        $dayOfWeek  = Carbon::now()->dayOfWeek;
+        for ($i = 0; $i < 3; $i++) {
+            $scheduleInDay = $workSchedule[$dayOfWeek];
+            array_push($bookingDayWeek, $scheduleInDay);
+            $dayOfWeek += 1;
+        }
+        return $bookingDayWeek;
+    }
+
+    public static function genBookingTimePeriod($storeId, $openAtStr, $closeAtStr, int $nextDay = 0)
+    {
+        $openAt = new DateTime($openAtStr);
+        $remainTimeToNextHour = 60 - $openAt->format('i');
+        $startBookingTime = $openAt->modify("+ $remainTimeToNextHour minutes");
+
+        $closeAt = new DateTime($closeAtStr);
+        $remainTimeToNextHour = 60 - $closeAt->format('i');
+        $endBookingTime = $closeAt->modify("- $remainTimeToNextHour minutes");
+
+        $mapBookingTime = [];
+        $arrayQueryDateTime = [];
+        while ($endBookingTime > $startBookingTime) {
+            $bookingTime = $startBookingTime->format('H:i');
+            $queryBookingDate = $startBookingTime->format('Y-m-d H:i:s');
+            if ($nextDay != 0) {
+                $queryDate = new DateTime($queryBookingDate);
+                $queryDate->modify("+ $nextDay days");
+                $queryBookingDate = $queryDate->format('Y-m-d H:i:s');
+            }
+            $mapBookingTime[$bookingTime] = true;
+            array_push($arrayQueryDateTime, $queryBookingDate);
+            $startBookingTime->modify('+ 1 hours');
+        }
+        $countBookingTime = DB::table('service_orders')->select('order_date', DB::raw('count(id) as slots'))
+            ->whereIn('order_date', $arrayQueryDateTime)
+            ->where(ServiceOrder::COL_STATUS, ServiceOrder::CONFIRM)
+            ->groupBy('order_date')->pluck('slots', 'order_date');
+        $store = Store::find($storeId);
+        $maxBookingSlots = (int)$store->{Store::COL_SERVICE_SLOTS};
+
+        foreach ($countBookingTime as $orderDateTime => $count) {
+            if ($count >= $maxBookingSlots) {
+                $tmp = new DateTime($orderDateTime);
+                $orderTime = $tmp->format('H:i');
+                $mapBookingTime[$orderTime] = false;
+            }
+        }
+
+        return $mapBookingTime;
     }
 
     /**

@@ -20,11 +20,15 @@ class ServiceController extends Controller
     const API_URL_GET_SERVICES = '/get-services-by-category';
     const API_URL_CREATE_SERVICE = '/create';
     const API_URL_GET_ALL_SERVICES_WITH_CATEGORY = '/get-all-servicies-with-category';
+    const API_URL_UPDATE_SERVICE = '/update-service';
+    const API_URL_DELETE_SERVICE = '/delete-service';
 
     /** Method */
     const METHOD_GET_SERVICES = 'getServicesByCategory';
     const METHOD_CREATE_SERVICE = 'createService';
     const METHOD_GET_ALL_SERVICES_WITH_CATEGORY = 'getAllServicesWithCategory';
+    const METHOD_UPDATE_SERVICE = 'updateService';
+    const METHOD_DELETE_SERVICE = 'deleteService';
 
     /**
      * @functionName: getServicesByCategory
@@ -145,6 +149,105 @@ class ServiceController extends Controller
             return self::responseST(ServiceM::GET_SERVICE_BY_CATEGORY_SUCCESS, ServiceM::M_GET_SERVICE_BY_CATEGORY_SUCCESS, $services);
         } catch (Exception $ex) {
             return self::responseEX(ServiceM::EXW_GET_SERVICE_BY_CATEGORY, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: updateService
+     * @type:         public
+     * @param:        Request, int $serviceId
+     * @return:       String(Json)
+     */
+    public function updateService(Request $request, $serviceId)
+    {
+        if (!$this->isAdmin() and !$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $name = $request->{Service::COL_NAME};
+            $description = $request->{Service::COL_DESCRIPTION};
+            $price = $request->{Service::COL_PRICE};
+            $categoryId = $request->{Service::VAL_CATEGORY_ID};
+
+            $validator = Service::validator([
+                Service::COL_NAME => $name,
+                Service::COL_PRICE => $price,
+                Service::COL_DESCRIPTION => $description,
+                Service::VAL_CATEGORY_ID => $categoryId,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
+            if (!Category::find($categoryId)) {
+                return self::responseERR(ServiceM::NOT_FOUND_SERVICE_CATEGORY, ServiceM::M_NOT_FOUND_SERVICE_CATEGORY);
+            }
+            $service = Service::find($serviceId);
+            if (!$service) {
+                return self::responseERR('ERR400xxx', 'Not found service.');
+            }
+            DB::beginTransaction();
+            $service->{Service::COL_NAME} = $name;
+            $service->{Service::COL_PRICE} = $price;
+            $service->{Service::COL_DESCRIPTION} = $description;
+            $service->{Service::COL_CATEGORY_ID} = $categoryId;
+            $rsSave = $service->save();
+            if (!$rsSave) {
+                DB::rollBack();
+                return self::responseERR('ERR400xxx', 'Update service failed.');
+            }
+            if ($request->has('file')) {
+                $fileId = $service->files->first()->{File::COL_ID};
+                $request->fileId = $fileId;
+                $request->type = File::IMAGE_TYPE;
+                $fileController = new FileController();
+                $responseSaveFile = $fileController->uploadFileS3($request)->getData();
+                if ($responseSaveFile->code != 200) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update service failed.');
+                }
+            }
+            DB::commit();
+            $service = Service::find($service->{Service::COL_ID});
+            return self::responseST('ST200xxx', 'Update service successfully.', $service);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: deleteService
+     * @type:         public
+     * @param:        int $serviceId
+     * @return:       String(Json)
+     */
+    public function deleteService(int $serviceId)
+    {
+        if (!$this->isAdmin() and !$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $validator = Service::validator([
+                Service::COL_ID => $serviceId,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $service = Service::find($serviceId);
+            if (!$service) {
+                return self::responseERR('ERR400xxx', 'Not found service.');
+            }
+            DB::beginTransaction();
+            if (!$service->files()->delete() or !$service->delete()) {
+                DB::rollBack();
+                return self::responseERR('ERR400xxx', 'Delete service failed.');
+            }
+            DB::commit();
+            return self::responseST('ST200xxx', 'Delete service successfully.');
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
 }

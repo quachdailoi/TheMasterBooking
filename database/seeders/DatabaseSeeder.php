@@ -155,24 +155,163 @@ class DatabaseSeeder extends Seeder
         //---------
         ServiceCategory::create([
             ServiceCategory::COL_ID => 1,
-            ServiceCategory::COL_NAME => 'Chăm sóc tóc',
+            ServiceCategory::COL_NAME => 'Dịch vụ cho nam',
         ]);
         File::create([
             File::COL_OWNER_TYPE => ServiceCategory::class,
             File::COL_OWNER_ID => 1,
             File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
         ]);
+        ServiceCategory::create([
+            ServiceCategory::COL_ID => 2,
+            ServiceCategory::COL_NAME => 'Dịch vụ cho nữ',
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => ServiceCategory::class,
+            File::COL_OWNER_ID => 2,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+        ]);
+        ServiceCategory::create([
+            ServiceCategory::COL_ID => 3,
+            ServiceCategory::COL_NAME => 'Chăm sóc tóc',
+            ServiceCategory::COL_PARENT_ID => 1,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => ServiceCategory::class,
+            File::COL_OWNER_ID => 3,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+        ]);
+        ServiceCategory::create([
+            ServiceCategory::COL_ID => 4,
+            ServiceCategory::COL_NAME => 'Chăm sóc da mặt',
+            ServiceCategory::COL_PARENT_ID => 1,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => ServiceCategory::class,
+            File::COL_OWNER_ID => 4,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+        ]);
+        ServiceCategory::create([
+            ServiceCategory::COL_ID => 5,
+            ServiceCategory::COL_NAME => 'Chăm sóc tóc',
+            ServiceCategory::COL_PARENT_ID => 2,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => ServiceCategory::class,
+            File::COL_OWNER_ID => 5,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+        ]);
+        ServiceCategory::create([
+            ServiceCategory::COL_ID => 6,
+            ServiceCategory::COL_NAME => 'Chăm sóc da mặt',
+            ServiceCategory::COL_PARENT_ID => 2,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => ServiceCategory::class,
+            File::COL_OWNER_ID => 6,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+        ]);
 
         Service::create([
             Service::COL_ID => 1,
-            Service::COL_NAME => 'Cắt tóc nam',
-            Service::COL_DESCRIPTION => 'Siêu đẹp',
+            Service::COL_NAME => 'Combo tạo kiểu, cắt, gội, wax',
+            Service::COL_DESCRIPTION => 'Combo siêu rẻ, siêu đẹp',
             Service::COL_PRICE => 100000,
-            Service::COL_CATEGORY_ID => 1,
+            Service::COL_CATEGORY_ID => 3,
         ]);
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 1,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        //---
+        Service::create([
+            Service::COL_ID => 2,
+            Service::COL_NAME => 'Uốn tóc Hàn Quốc',
+            Service::COL_DESCRIPTION => 'Đẹp như soái ca Hàn',
+            Service::COL_PRICE => 300000,
+            Service::COL_CATEGORY_ID => 3,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 2,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        Service::create([
+            Service::COL_ID => 3,
+            Service::COL_NAME => 'Detox dưỡng da',
+            Service::COL_DESCRIPTION => 'Sạch sâu, sáng da',
+            Service::COL_PRICE => 150000,
+            Service::COL_CATEGORY_ID => 4,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 3,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        //---
+        Service::create([
+            Service::COL_ID => 4,
+            Service::COL_NAME => 'Massage & đắp mặt nạ',
+            Service::COL_DESCRIPTION => 'Sảng khoái, đẹp da',
+            Service::COL_PRICE => 150000,
+            Service::COL_CATEGORY_ID => 4,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 4,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        //-----
+        Service::create([
+            Service::COL_ID => 5,
+            Service::COL_NAME => 'Combo tạo kiểu, dưỡng tóc',
+            Service::COL_DESCRIPTION => 'Tái tạo và tạo kiểu tóc đep',
+            Service::COL_PRICE => 550000,
+            Service::COL_CATEGORY_ID => 5,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 5,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        //------
+        Service::create([
+            Service::COL_ID => 6,
+            Service::COL_NAME => 'Uốn tóc + Dưỡng tóc',
+            Service::COL_DESCRIPTION => 'Tóc trở nên bồng bềnh và mềm mượt',
+            Service::COL_PRICE => 700000,
+            Service::COL_CATEGORY_ID => 5,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 6,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        //------
+        Service::create([
+            Service::COL_ID => 7,
+            Service::COL_NAME => 'Xông hơi, dưỡng da',
+            Service::COL_DESCRIPTION => 'Da sạch, trắng sáng',
+            Service::COL_PRICE => 250000,
+            Service::COL_CATEGORY_ID => 6,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 7,
+            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+        ]);
+        //------
+        Service::create([
+            Service::COL_ID => 8,
+            Service::COL_NAME => 'Combo da trắng, sạch, khỏe',
+            Service::COL_DESCRIPTION => 'Da trở nên khỏe khoắn, trắng mịn',
+            Service::COL_PRICE => 500000,
+            Service::COL_CATEGORY_ID => 6,
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Service::class,
+            File::COL_OWNER_ID => 8,
             File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
         ]);
 
@@ -180,8 +319,12 @@ class DatabaseSeeder extends Seeder
             Category::COL_ID => 1,
             Category::COL_NAME => 'Sản phẩm cho nam',
         ]);
+        Category::create([
+            Category::COL_ID => 2,
+            Category::COL_NAME => 'Sản phẩm cho nữ',
+        ]);
 
-        \App\Models\Product::factory(50)->create();
+        \App\Models\Product::factory(100)->create();
         for ($i = 1; $i <= 50; $i++) {
             File::create([
                 File::COL_OWNER_TYPE => Product::class,

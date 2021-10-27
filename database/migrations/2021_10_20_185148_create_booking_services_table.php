@@ -17,13 +17,11 @@ class CreateBookingServicesTable extends Migration
             $table->id();
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('service_id');
-            $table->unsignedBigInteger('store_id');
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('order_id')->references('id')->on('service_orders');
             $table->foreign('service_id')->references('id')->on('services');
-            $table->foreign('store_id')->references('id')->on('stores');
         });
     }
 
