@@ -26,7 +26,7 @@ class StoreController extends Controller
     const API_URL_GET_STORE_BY_CITY = '/get-store-by-city';
     const API_URL_UPDATE_STORE = '/update-store/{storeId}';
     const API_URL_DELETE_STORE = '/delete-store/{storeId}';
-    const API_URL_UPDATE_WORK_SCHEDULE = '/update-work-schedule';
+    const API_URL_UPDATE_WORK_SCHEDULE = '/update-work-schedule/{storeId}';
     const API_URL_GET_BOOKING_TIME = '/get-booking-time/{storeId}';
 
     /** Method */
