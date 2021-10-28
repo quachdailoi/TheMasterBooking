@@ -12,6 +12,8 @@ use App\Models\Store;
 use App\Models\User;
 use Exception;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -331,6 +333,14 @@ class DatabaseSeeder extends Seeder
                 File::COL_OWNER_ID => $i,
                 File::COL_PATH => getenv('DEFAULT_PRODUCT_IMAGE_URL'),
             ]);
+        }
+
+        $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
+        foreach ($tables as $table) {
+            if (Schema::hasColumn($table, 'id')) {
+                $beginInc = DB::table($table)->max('id') + 1;
+                DB::statement("ALTER TABLE $table AUTO_INCREMENT=$beginInc");
+            }
         }
     }
 }
