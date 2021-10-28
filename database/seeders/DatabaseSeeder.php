@@ -339,7 +339,11 @@ class DatabaseSeeder extends Seeder
         foreach ($tables as $table) {
             if (Schema::hasColumn($table, 'id')) {
                 $beginInc = DB::table($table)->max('id') + 1;
-                DB::statement("ALTER TABLE $table AUTO_INCREMENT=$beginInc");
+                if (getenv('APP_ENV') == 'local') {
+                    DB::statement("ALTER TABLE $table AUTO_INCREMENT=$beginInc");
+                } else {
+                    DB::statement("ALTER SEQUENCE $table"."_id_seq RESTART WITH $beginInc");
+                }
             }
         }
     }
