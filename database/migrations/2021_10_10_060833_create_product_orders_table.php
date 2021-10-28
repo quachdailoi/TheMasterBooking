@@ -15,13 +15,21 @@ class CreateProductOrdersTable extends Migration
     {
         Schema::create('product_orders', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('order_id');
-            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('user_id');
+            $table->double('amount')->default(0);
+            $table->dateTime('order_date');
+            $table->unsignedTinyInteger('status')->default(1);
+            $table->text('address');
+            $table->string('email')->nullable();
+            $table->string('phone');
+            $table->string('receiver_name');
+            $table->string('shipping_method');
+            $table->string('payment_method');
+            $table->json('products');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('order_id')->references('id')->on('user_orders');
-            $table->foreign('product_id')->references('id')->on('products');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

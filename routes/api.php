@@ -59,6 +59,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], functio
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductOrderC::PREFIX], function () {
     Route::post(ProductOrderC::API_URL_CHECKOUT, [ProductOrderC::class, ProductOrderC::METHOD_CHECKOUT]);
+    Route::get(ProductOrderC::API_URL_GET_ORDER_DETAILS, [ProductOrderC::class, ProductOrderC::METHOD_GET_ORDER_DETAILS]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function () {
@@ -93,4 +94,5 @@ Route::group(['middleware' => 'auth:api', 'prefix' => HomeController::PREFIX], f
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceOrderC::PREFIX], function () {
     Route::post(ServiceOrderC::API_URL_ORDER, [ServiceOrderC::class, ServiceOrderC::METHOD_ORDER]);
+    Route::get(ServiceOrderC::API_URL_GET_ORDER_DETAILS, [ServiceOrderC::class, ServiceOrderC::METHOD_GET_ORDER_DETAILS]);
 });

@@ -23,11 +23,13 @@ class CreateServiceOrdersTable extends Migration
             $table->string('phone');
             $table->string('user_name');
             $table->string('note')->nullable();
-            $table->json('settings')->nullable();
+            $table->json('services');
+            $table->unsignedBigInteger('store_id');
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('store_id')->references('id')->on('stores');
         });
     }
 

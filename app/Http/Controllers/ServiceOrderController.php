@@ -20,10 +20,12 @@ class ServiceOrderController extends Controller
     const PREFIX = 'service-order';
 
     /** Api url */
-    const API_URL_ORDER = '/order';
+    const API_URL_ORDER = '/booking';
+    const API_URL_GET_ORDER_DETAILS = '/get-details/{orderId}';
 
     /** Method */
     const METHOD_ORDER = 'order';
+    const METHOD_GET_ORDER_DETAILS = 'getOrderDetails';
 
     /**
      * @functionName: serviceOrder
@@ -42,12 +44,6 @@ class ServiceOrderController extends Controller
             $email = $request->email;
             $note = $request->note;
 
-            $validator = BookingService::validator([
-                'serviceIds' => $serviceIds
-            ]);
-            if ($validator->fails()) {
-                return self::responseIER($validator->errors()->first());
-            }
             $validator = ServiceOrder::validator([
                 ServiceOrder::COL_ORDER_DATE => $orderDateTime,
                 ServiceOrder::COL_EMAIL => $email,
@@ -55,6 +51,7 @@ class ServiceOrderController extends Controller
                 ServiceOrder::VAL_USER_NAME => $name,
                 ServiceOrder::COL_NOTE => $note,
                 ServiceOrder::VAL_STORE_ID => $storeId,
+                'serviceIds' => $serviceIds,
             ]);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
@@ -85,6 +82,7 @@ class ServiceOrderController extends Controller
                 ServiceOrder::COL_USER_NAME => $name,
                 ServiceOrder::COL_NOTE => $note,
                 ServiceOrder::COL_STORE_ID => $storeId,
+                ServiceOrder::COL_SERVICES => $services,
             ];
             $order = ServiceOrder::create($dataOrder);
             if (!$order) {
@@ -92,24 +90,32 @@ class ServiceOrderController extends Controller
                 return self::responseERR('ERR400xxx', 'Booking services failed.');
             }
             $orderId = $order->{ServiceOrder::COL_ID};
-            $dataBookingServices = [];
-            foreach ($serviceIds as $id) {
-                $data = [
-                    BookingService::COL_ORDER_ID => $orderId,
-                    BookingService::COL_SERVICE_ID => $id,
-                    BookingService::COL_CREATED_AT => Carbon::now(),
-                ];
-                array_push($dataBookingServices, $data);
-            }
-            $rsSave = BookingService::insert($dataBookingServices);
-            if (!$rsSave) {
-                DB::rollBack();
-                return self::responseERR('ERR400xxx', 'Booking services failed.');
-            }
+
             DB::commit();
-            return self::responseST('ST200xxx', 'Booking service(s) successfully.');
+            return self::responseST('ST200xxx', 'Booking service(s) successfully.', ['orderId' => $orderId]);
         } catch (Exception $ex) {
             DB::rollBack();
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getOrderDetails
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function getOrderDetails($orderId)
+    {
+        try {
+            $orderId = (int) $orderId;
+            $order = ServiceOrder::find($orderId);
+            $currentUserId = Auth::user()->{User::COL_ID};
+            if ($order->{ServiceOrder::COL_USER_ID} != $currentUserId) {
+                return self::responseERR('ERR400xxx', 'This is not your order.');
+            }
+            return self::responseST('ST200xxx', 'Get order details successfully.', $order);
+        } catch (Exception $ex) {
             return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }

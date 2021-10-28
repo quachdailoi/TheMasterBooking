@@ -21,7 +21,7 @@ class ServiceOrder extends CommonModel
     const COL_PHONE = 'phone';
     const COL_USER_NAME = 'user_name';
     const COL_NOTE = 'note';
-    const COL_SETTINGS = 'settings';
+    const COL_SERVICES = 'services';
     const COL_STORE_ID = 'store_id';
 
     /** value of model */
@@ -50,7 +50,7 @@ class ServiceOrder extends CommonModel
         self::COL_PHONE,
         self::COL_USER_NAME,
         self::COL_NOTE,
-        self::COL_SETTINGS,
+        self::COL_SERVICES,
         self::COL_STORE_ID,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
@@ -64,6 +64,7 @@ class ServiceOrder extends CommonModel
      */
     protected $casts = [
         self::COL_ORDER_DATE => 'datetime:Y-m-d H:i:s',
+        self::COL_SERVICES => 'array',
     ];
 
     public static function getTableName()
@@ -93,8 +94,9 @@ class ServiceOrder extends CommonModel
             self::COL_PHONE => 'required|numeric',
             self::VAL_USER_NAME => 'required',
             self::COL_NOTE => 'nullable',
-            self::COL_SETTINGS => 'nullable',
+            self::COL_SERVICES => 'required|array',
             self::VAL_STORE_ID => 'required|numeric',
+            'serviceIds' => 'required|array',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
