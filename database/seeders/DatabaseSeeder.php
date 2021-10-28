@@ -338,8 +338,8 @@ class DatabaseSeeder extends Seeder
         $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
         foreach ($tables as $table) {
             if (Schema::hasColumn($table, 'id')) {
-                $beginInc = DB::table($table)->max('id') + 1;
                 try {
+                    $beginInc = DB::table($table)->max('id') + 1;
                     if (getenv('APP_ENV') == 'local') {
                         DB::statement("ALTER TABLE $table AUTO_INCREMENT=$beginInc");
                     } else {
