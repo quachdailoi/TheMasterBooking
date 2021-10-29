@@ -570,7 +570,7 @@ class UserController extends Controller
     {
         try {
             $cart = $request->{User::COL_CART};
-            if (!$cart) {
+            if ($cart === null) {
                 return self::responseERR(UM::INVALID_CART_PARAMETER, UM::M_INVALID_CART_PARAMETER);
             }
             $productIds = array_keys($cart);
