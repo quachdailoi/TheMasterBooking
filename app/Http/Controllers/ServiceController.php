@@ -179,7 +179,7 @@ class ServiceController extends Controller
                 return self::responseIER($validator->errors()->first());
             }
             $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
-            if (!Category::find($categoryId)) {
+            if (!ServiceCategory::find($categoryId)) {
                 return self::responseERR(ServiceM::NOT_FOUND_SERVICE_CATEGORY, ServiceM::M_NOT_FOUND_SERVICE_CATEGORY);
             }
             $service = Service::find($serviceId);
