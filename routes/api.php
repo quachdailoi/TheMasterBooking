@@ -105,6 +105,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ManagerC::PREFIX], functio
     Route::get(ManagerC::API_URL_GET_ALL_STAFFS, [ManagerC::class, ManagerC::METHOD_GET_ALL_STAFFS]);
     Route::post(ManagerC::API_URL_UPDATE_STAFF, [ManagerC::class, ManagerC::METHOD_UPDATE_STAFF]);
     Route::delete(ManagerC::API_URL_DELETE_STAFF, [ManagerC::class, ManagerC::METHOD_DELETE_STAFF]);
+    Route::get(ManagerC::API_URL_GET_STAFF_BY_ID, [ManagerC::class, ManagerC::METHOD_GET_STAFF_BY_ID]);
 
     Route::post(ManagerC::API_URL_CREATE_SHIFT, [ManagerC::class, ManagerC::METHOD_CREATE_SHIFT]);
     Route::get(ManagerC::API_URL_GET_ALL_SHIFTS, [ManagerC::class, ManagerC::METHOD_GET_ALL_SHIFTS]);

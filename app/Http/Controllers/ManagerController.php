@@ -22,6 +22,7 @@ class ManagerController extends Controller
     const API_URL_UPDATE_STAFF = 'staff/update/{staffId}';
     const API_URL_DELETE_STAFF = 'staff/delete/{staffId}';
     const API_URL_GET_ALL_STAFFS = 'staff/get-all';
+    const API_URL_GET_STAFF_BY_ID = 'staff/get/{staffId}';
 
     const API_URL_CREATE_SHIFT = 'shift/create';
     const API_URL_UPDATE_SHIFT = 'shift/update/{shiftId}';
@@ -33,6 +34,7 @@ class ManagerController extends Controller
     const METHOD_UPDATE_STAFF = 'updateStaff';
     const METHOD_DELETE_STAFF = 'deleteStaff';
     const METHOD_GET_ALL_STAFFS = 'getAllStaffs';
+    const METHOD_GET_STAFF_BY_ID = 'getStaffById';
 
     const METHOD_CREATE_SHIFT = 'createShift';
     const METHOD_UPDATE_SHIFT = 'updateShift';
@@ -192,8 +194,11 @@ class ManagerController extends Controller
             }
             $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
 
-            $staff = User::where(User::COL_ROLE_ID, User::STAFF_ROLE_ID)
-                ->where(User::COL_ID, $staffId)->first();
+            $storeId = Auth::user()->{User::COL_STORE_ID};
+            $staff = User::where(User::COL_ID, $staffId)
+                ->where(User::COL_ROLE_ID, User::STAFF_ROLE_ID)
+                ->where(User::COL_STORE_ID, $storeId)
+                ->first();
             if (!$staff) {
                 return self::responseERR('ERR400xxx', 'Not found staff');
             }
@@ -221,7 +226,6 @@ class ManagerController extends Controller
                     return self::responseERR('ERR400xxx', 'Update staff failed2.');
                 }
             } elseif ($request->has('shiftIds')) {
-                $storeId = Auth::user()->{User::COL_STORE_ID};
                 $shiftIds = array_unique($request->shiftIds);
                 $shiftFound = Shift::whereIn(Shift::COL_ID, $shiftIds)
                     ->where(Shift::COL_STORE_ID, $storeId)->pluck(Shift::COL_ID);
@@ -274,8 +278,10 @@ class ManagerController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
+            $storeId = Auth::user()->{User::COL_STORE_ID};
             $staff = User::where(User::COL_ID, $staffId)
                 ->where(User::COL_ROLE_ID, User::STAFF_ROLE_ID)
+                ->where(User::COL_STORE_ID, $storeId)
                 ->first();
             if (!$staff) {
                 return self::responseERR('ERR400xxx', 'Not found staff.');
@@ -287,6 +293,40 @@ class ManagerController extends Controller
             }
             DB::commit();
             return self::responseST('ST200xxx', 'Delete staff successfully.');
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getStaffById
+     * @type:         public
+     * @param:        int $staffId
+     * @return:       String(Json)
+     */
+    public function getStaffById(int $staffId)
+    {
+        if (!$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $validator = User::validator([
+                User::COL_ID => $staffId,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $storeId = Auth::user()->{User::COL_STORE_ID};
+            $staff = User::where(User::COL_ID, $staffId)
+                ->where(User::COL_ROLE_ID, User::STAFF_ROLE_ID)
+                ->where(User::COL_STORE_ID, $storeId)
+                ->first();
+            if (!$staff) {
+                return self::responseERR('ERR400xxx', 'Not found staff.');
+            }
+
+            return self::responseST('ST200xxx', 'Get staff successfully.', ['staff' => $staff]);
         } catch (Exception $ex) {
             DB::rollBack();
             return self::responseEX('EX500xxx', $ex->getMessage());
