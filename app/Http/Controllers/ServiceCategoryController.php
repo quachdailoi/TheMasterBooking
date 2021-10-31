@@ -109,4 +109,6 @@ class ServiceCategoryController extends Controller
             return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
+
+
 }

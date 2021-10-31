@@ -191,8 +191,11 @@ class FileController extends Controller
     private function checkOwnerOfFile($ownerTypeClass, $ownerId)
     {
         if (User::class == $ownerTypeClass) {
-            $curUserId = Auth::user()->{User::COL_ID};
-            if ($curUserId != $ownerId) {
+            $curUser = Auth::user();
+            if ($curUser->{User::COL_ID} != $ownerId
+                and $curUser->{User::COL_ROLE_ID} != User::MANAGER_ROLE_ID
+                and $curUser->{User::COL_ROLE_ID} != User::ADMIN_ROLE_ID
+            ) {
                 return false;
             }
         }
@@ -203,7 +206,6 @@ class FileController extends Controller
     {
         $currentUser = Auth::user();
         $right = File::OWNER_TYPE_RIGHT[$currentUser->{User::COL_ROLE_ID}][$ownerType] ?? false;
-        // addslashes vì key của array auto thêm slashes vào. App\Models\User -> App\\Models\\User
         return $right;
     }
 }

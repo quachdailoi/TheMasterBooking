@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController as CategoryC;
 use App\Http\Controllers\FileController as FileC;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ManagerController as ManagerC;
 use App\Http\Controllers\UserController as UserC;
 use App\Http\Controllers\ProductController as ProductC;
 use App\Http\Controllers\ProductOrderController as ProductOrderC;
@@ -45,6 +46,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => FileC::PREFIX], function (
 Route::group(['middleware' => 'auth:api', 'prefix' => CategoryC::PREFIX], function () {
     Route::get(CategoryC::API_URL_GET_ALL, [CategoryC::class, CategoryC::METHOD_GET_ALL]);
     Route::post(CategoryC::API_URL_CREATE_CATEGORY, [CategoryC::class, CategoryC::METHOD_CREATE]);
+    Route::post(CategoryC::API_URL_UPDATE_CATEGORY, [CategoryC::class, CategoryC::METHOD_UPDATE]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], function () {
@@ -90,9 +92,22 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ServiceCategoryC::PREFIX],
 Route::group(['middleware' => 'auth:api', 'prefix' => HomeController::PREFIX], function () {
     Route::get(HomeController::API_URL_GET_DATA, [HomeController::class, HomeController::METHOD_GET_DATA]);
     Route::get(HomeController::API_URL_GET_ALL_CATEGORIES_AND_PRODUCTS, [HomeController::class, HomeController::METHOD_GET_ALL_CATEGORIES_AND_PRODUCTS]);
+    Route::get(HomeController::API_URL_GET_ALL_CATEGORIES_AND_SERVICES, [HomeController::class, HomeController::METHOD_GET_ALL_CATEGORIES_AND_SERVICES]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceOrderC::PREFIX], function () {
     Route::post(ServiceOrderC::API_URL_ORDER, [ServiceOrderC::class, ServiceOrderC::METHOD_ORDER]);
     Route::get(ServiceOrderC::API_URL_GET_ORDER_DETAILS, [ServiceOrderC::class, ServiceOrderC::METHOD_GET_ORDER_DETAILS]);
+});
+
+Route::group(['middleware' => 'auth:api', 'prefix' => ManagerC::PREFIX], function () {
+    Route::post(ManagerC::API_URL_CREATE_STAFF, [ManagerC::class, ManagerC::METHOD_CREATE_STAFF]);
+    Route::get(ManagerC::API_URL_GET_ALL_STAFFS, [ManagerC::class, ManagerC::METHOD_GET_ALL_STAFFS]);
+    Route::post(ManagerC::API_URL_UPDATE_STAFF, [ManagerC::class, ManagerC::METHOD_UPDATE_STAFF]);
+    Route::delete(ManagerC::API_URL_DELETE_STAFF, [ManagerC::class, ManagerC::METHOD_DELETE_STAFF]);
+
+    Route::post(ManagerC::API_URL_CREATE_SHIFT, [ManagerC::class, ManagerC::METHOD_CREATE_SHIFT]);
+    Route::get(ManagerC::API_URL_GET_ALL_SHIFTS, [ManagerC::class, ManagerC::METHOD_GET_ALL_SHIFTS]);
+    Route::post(ManagerC::API_URL_UPDATE_SHIFT, [ManagerC::class, ManagerC::METHOD_UPDATE_SHIFT]);
+    Route::delete(ManagerC::API_URL_DELETE_SHIFT, [ManagerC::class, ManagerC::METHOD_DELETE_SHIFT]);
 });

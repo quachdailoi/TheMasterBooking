@@ -40,7 +40,7 @@ class File extends CommonModel
     const FILE_VALIDATIONS = [
         'nullable|image|mimes:jpeg,png,jpg,gif,svg|mimetypes:image/gif,image/jpeg,image/png|max:2048',
         'nullable|max:2048|mimes:video/x-ms-asf,video/x-flv,video/mp4,application/x-mpegURL,video/MP2T,video/3gpp',
-        'nullable|max:2048'
+        'nullable|max:2048',
     ];
 
     /** owner file type */
@@ -70,6 +70,7 @@ class File extends CommonModel
         Service::class => true,
         ServiceCategory::class => true,
         Store::class => true,
+        User::class => true,
     ];
 
     /** Owner type right for admin */

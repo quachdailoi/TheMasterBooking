@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\CodeAndMessage\ProductOrderMessage as POM;
+use App\Jobs\SendOrderDetailsMail;
 use App\Models\Product;
 use App\Models\ProductOrder;
 use App\Models\User;
@@ -40,6 +41,7 @@ class ProductOrderController extends Controller
             $receiverName = $request->{ProductOrder::VAL_RECEIVER_NAME};
             $shippingMethod = $request->{ProductOrder::VAL_SHIPPING_METHOD};
             $paymentMethod = $request->{ProductOrder::VAL_PAYMENT_METHOD};
+            $notes = $request->{ProductOrder::COL_NOTES};
 
             $validator = ProductOrder::validator([
                 ProductOrder::COL_ADDRESS => $address,
@@ -48,6 +50,7 @@ class ProductOrderController extends Controller
                 ProductOrder::VAL_RECEIVER_NAME => $receiverName,
                 ProductOrder::VAL_SHIPPING_METHOD => $shippingMethod,
                 ProductOrder::VAL_PAYMENT_METHOD => $paymentMethod,
+                ProductOrder::COL_NOTES => $notes,
             ]);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
@@ -68,6 +71,7 @@ class ProductOrderController extends Controller
                 ProductOrder::COL_RECEIVER_NAME => $receiverName,
                 ProductOrder::COL_SHIPPING_METHOD => $shippingMethod,
                 ProductOrder::COL_PAYMENT_METHOD => $paymentMethod,
+                ProductOrder::COL_NOTES => $notes,
             ];
 
             // create product order
@@ -75,7 +79,7 @@ class ProductOrderController extends Controller
             $products = Product::whereIn(Product::COL_ID, array_keys($cart))->get();
             $notEnoughQuantityProducts = [];
             $amount = 0;
-            $dataOrderProducts = [];
+
             foreach ($products as $product) {
                 $productId = $product->{Product::COL_ID};
                 if ($product->{Product::COL_QUANTITY} < $cart[$productId]) {
@@ -102,7 +106,17 @@ class ProductOrderController extends Controller
             }
             DB::commit();
             $orderId = $order->{ProductOrder::COL_ID};
-            //\Mail::to($email)->send(new \App\Mail\OrderDetailsMail('abc'));
+            $order->{ProductOrder::COL_SHIPPING_METHOD}
+                = ProductOrder::SHIPPING_MAP[$order->{ProductOrder::COL_SHIPPING_METHOD}];
+            $order->{ProductOrder::COL_PAYMENT_METHOD}
+                = ProductOrder::PAYMENT_MAP[$order->{ProductOrder::COL_PAYMENT_METHOD}];
+            $details = [
+                'order' => $order,
+                'products' => $products,
+                'user' => Auth::user(),
+                'email' => $email,
+            ];
+            dispatch(new SendOrderDetailsMail($details));
             // clear cart
             $currentUser->{User::COL_CART} = null;
             $currentUser->save();

@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Twilio\Rest\Client;
 use App\CodeAndMessage\UserMessage as UM;
+use App\Jobs\SendVerificationMail;
 use App\Models\File;
 use App\Models\Product;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -205,8 +207,11 @@ class UserController extends Controller
         if ($type == VerifiedCode::EMAIL_CHANNEL) {
             $details = [
                 'code' => $code,
+                'email' => $receiver
             ];
-            \Mail::to($receiver)->send(new \App\Mail\VerificationMail($details));
+
+            Mail::to($receiver)->queue(new \App\Mail\VerificationMail($details));
+
             return;
         }
         $this->sendMessage($message, $receiver);

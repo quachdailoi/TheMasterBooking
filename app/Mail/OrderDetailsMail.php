@@ -11,7 +11,9 @@ class OrderDetailsMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $details;
+    public $order;
+    public $products;
+    public $user;
 
     /**
      * Create a new message instance.
@@ -20,7 +22,9 @@ class OrderDetailsMail extends Mailable
      */
     public function __construct($details)
     {
-        $this->details = $details;
+        $this->order = $details['order'] ?? null;
+        $this->products = $details['products'] ?? null;
+        $this->user = $details['user'] ?? null;
     }
 
     /**

@@ -47,8 +47,10 @@ class User extends Authenticatable
     const VAL_RECEIVER = 'receiver';
     const VAL_USER_ID = 'userId';
     const VAL_AVATAR = 'avatar';
+    const VAL_ROLE_ID = 'roleId';
 
     // Value
+    const STAFF_ROLE_ID = 4;
     const ADMIN_ROLE_ID = 3;
     const MANAGER_ROLE_ID = 2;
     const CUSTOMER_ROLE_ID = 1;
@@ -104,7 +106,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $appends = ['avatar'];
+    protected $appends = ['avatar', 'shifts'];
 
     /**
      * Get the user's avatar.
@@ -123,6 +125,21 @@ class User extends Authenticatable
             $images = getenv('DEFAULT_USER_AVATAR_URL');
         }
         return $images;
+    }
+
+    /**
+     * Get the staff's shift.
+     *
+     * @return string
+     */
+    public function getShiftsAttribute()
+    {
+        if ($this->{self::COL_ROLE_ID} = self::STAFF_ROLE_ID) {
+            $shifts = UserShift::with('shift')
+                ->where(UserShift::COL_USER_ID, $this->{User::COL_ID})
+                ->get()->pluck('shift');
+            return $shifts;
+        }
     }
 
     public static function getTableName()
@@ -188,5 +205,10 @@ class User extends Authenticatable
     public function files()
     {
         return $this->morphMany(File::class, 'owner');
+    }
+
+    public function userShifts()
+    {
+        return $this->hasMany(UserShift::class, UserShift::COL_USER_ID, self::COL_ID);
     }
 }

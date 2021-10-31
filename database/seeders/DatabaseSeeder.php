@@ -39,6 +39,10 @@ class DatabaseSeeder extends Seeder
             Role::COL_ID => 3,
             Role::COL_NAME => 'ADMIN'
         ]);
+        Role::create([
+            Role::COL_ID => 4,
+            Role::COL_NAME => 'STAFF'
+        ]);
         Store::create([
             Store::COL_ID => 1,
             Store::COL_PHONE => '+0123456789',

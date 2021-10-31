@@ -23,6 +23,7 @@ class ProductOrder extends CommonModel
     const COL_SHIPPING_METHOD = 'shipping_method';
     const COL_PAYMENT_METHOD = 'payment_method';
     const COL_PRODUCTS = 'products';
+    const COL_NOTES = 'notes';
 
     /** value of model */
     const VAL_USER_ID = 'userId';
@@ -34,10 +35,18 @@ class ProductOrder extends CommonModel
     // shipping method
     const FAST_SHIPPING = 0;
     const STANDARD_SHIPPING = 1;
+    const SHIPPING_MAP = [
+        'Giao hàng nhanh',
+        'Giao hàng tiêu chuẩn'
+    ];
 
     // payment method
     const MOMO_PAYMENT = 0;
     const COD_PAYMENT = 1;
+    const PAYMENT_MAP = [
+        'Thanh toán momo',
+        'Thanh toán khi nhận hàng'
+    ];
 
     /** relations */
 
@@ -58,6 +67,7 @@ class ProductOrder extends CommonModel
         self::COL_SHIPPING_METHOD,
         self::COL_PAYMENT_METHOD,
         self::COL_PRODUCTS,
+        self::COL_NOTES,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
         self::COL_DELETED_AT,
@@ -105,6 +115,7 @@ class ProductOrder extends CommonModel
             self::COL_RECEIVER_NAME => 'required',
             self::COL_SHIPPING_METHOD => 'required|between:'.self::FAST_SHIPPING.','.self::STANDARD_SHIPPING,
             self::COL_PAYMENT_METHOD => 'required|between:'.self::MOMO_PAYMENT.','.self::COD_PAYMENT,
+            self::COL_NOTES => 'nullable'
         ];
         $errorCode = [
             'required' => ':attribute is required.',

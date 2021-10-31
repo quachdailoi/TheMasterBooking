@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Service;
 use App\Models\ServiceCategory;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,10 +17,12 @@ class HomeController extends Controller
     /** Api url */
     const API_URL_GET_DATA = '/get-data';
     const API_URL_GET_ALL_CATEGORIES_AND_PRODUCTS = '/get-all-categories-and-products';
+    const API_URL_GET_ALL_CATEGORIES_AND_SERVICES = '/get-all-categories-and-services';
 
     /** Method */
     const METHOD_GET_DATA = 'getData';
     const METHOD_GET_ALL_CATEGORIES_AND_PRODUCTS = 'getAllCategoriesAndProducts';
+    const METHOD_GET_ALL_CATEGORIES_AND_SERVICES = 'getAllCategoriesAndServices';
 
     /**
      * @functionName: getData
@@ -62,9 +65,32 @@ class HomeController extends Controller
                 'products' => $products,
             ];
 
-            return self::responseST('', '', $data);
+            return self::responseST('ST200xxx', 'Get all categories and products successfully.', $data);
         } catch (Exception $ex) {
-            return self::responseEX('', $ex->getMessage());
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getAllCategoriesAndServices
+     * @type:         public
+     * @param:        Empty
+     * @return:       String(Json)
+     */
+    public function getAllCategoriesAndServices()
+    {
+        try {
+            $categories = ServiceCategory::with('allChildren')->whereNull(ServiceCategory::COL_PARENT_ID)->get();
+            $services = Service::all();
+
+            $data = [
+                'categories' => $categories,
+                'services' => $services,
+            ];
+
+            return self::responseST('ST200xxx', 'Get all categories and services successfully.', $data);
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
 }
