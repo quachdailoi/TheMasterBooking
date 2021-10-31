@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class ProductOrderController extends Controller
 {
@@ -116,7 +117,10 @@ class ProductOrderController extends Controller
                 'user' => Auth::user(),
                 'email' => $email,
             ];
-            dispatch(new SendOrderDetailsMail($details));
+
+            Mail::to($email)->send(new \App\Mail\OrderDetailsMail($details));
+            //dispatch(new SendOrderDetailsMail($details));
+            error_log('Some message here123.');
             // clear cart
             $currentUser->{User::COL_CART} = null;
             $currentUser->save();

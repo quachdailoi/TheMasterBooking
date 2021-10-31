@@ -209,8 +209,7 @@ class UserController extends Controller
                 'code' => $code,
                 'email' => $receiver
             ];
-
-            Mail::to($receiver)->queue(new \App\Mail\VerificationMail($details));
+            Mail::to($receiver)->send(new \App\Mail\VerificationMail($details));
 
             return;
         }
