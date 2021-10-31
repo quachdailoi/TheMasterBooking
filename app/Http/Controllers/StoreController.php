@@ -168,8 +168,15 @@ class StoreController extends Controller
         try {
             $cities = Store::all()->pluck(Store::COL_CITY)->toArray();
             $cities = array_unique($cities);
+            $dataCity = [];
+            foreach ($cities as $city) {
+                $data = [
+                    'name' => $city,
+                ];
+                array_push($dataCity, $data);
+            }
 
-            return self::responseST('ST200xxx', 'Get cities have store.', $cities);
+            return self::responseST('ST200xxx', 'Get cities have store.', $dataCity);
         } catch (Exception $ex) {
             return self::responseEX('EX500xxx', $ex->getMessage());
         }
