@@ -194,8 +194,15 @@ class Store extends CommonModel
                 $mapBookingTime[$orderTime] = false;
             }
         }
+        $slotTimeAndStatus = [];
+        foreach ($mapBookingTime as $time => $status) {
+            array_push($slotTimeAndStatus, [
+                'time' => $time,
+                'status' => $status,
+            ]);
+        }
 
-        return $mapBookingTime;
+        return $slotTimeAndStatus;
     }
 
     /**

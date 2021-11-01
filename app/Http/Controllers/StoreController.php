@@ -374,7 +374,11 @@ class StoreController extends Controller
                 $openAtStr = $schedule['openAt'];
                 $closeAtStr = $schedule['closeAt'];
                 $arrayTimeBooking = Store::genBookingTimePeriod($storeId, $openAtStr, $closeAtStr, $countDay);
-                $bookingTime[$date->format('Y-m-d')] = $arrayTimeBooking;
+
+                array_push($bookingTime, [
+                    'date' => $date->format('Y-m-d'),
+                    'slots' => $arrayTimeBooking,
+                ]);
                 $countDay += 1;
                 $date->modify("+ $countDay days");
             }
