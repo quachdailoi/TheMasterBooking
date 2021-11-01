@@ -97,9 +97,10 @@ class ManagerController extends Controller
             if (!$staff) {
                 return self::responseERR('ERR400xxx', 'Create staff failed1.');
             }
+            $staffId = $staff->{User::COL_ID};
             for ($i = 0; $i < $maxImages; $i++) {
                 $dataImage = [
-                    File::COL_OWNER_ID => $staff->{User::COL_ID},
+                    File::COL_OWNER_ID => $staffId,
                     File::COL_OWNER_TYPE => User::class,
                     File::COL_PATH => getenv('DEFAULT_USER_AVATAR_URL'),
                     File::COL_TYPE => File::IMAGE_TYPE,
@@ -120,6 +121,29 @@ class ManagerController extends Controller
                 if ($responseSaveFile->code != 200) {
                     DB::rollBack();
                     return self::responseERR('ERR400xxx', 'Create staff failed3.');
+                }
+            }
+            if ($request->has('shiftIds')) {
+                $shiftIds = array_unique($request->shiftIds);
+                $shiftFound = Shift::whereIn(Shift::COL_ID, $shiftIds)
+                    ->where(Shift::COL_STORE_ID, $storeId)->pluck(Shift::COL_ID);
+                if (count($shiftIds) != count($shiftFound)) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update staff failed - there are invalid shifts.');
+                }
+
+                $dataInsert = [];
+                foreach ($shiftIds as $shiftId) {
+                    $data = [
+                        UserShift::COL_USER_ID => $staffId,
+                        UserShift::COL_SHIFT_ID => $shiftId,
+                    ];
+                    array_push($dataInsert, $data);
+                }
+                $rsInsert = UserShift::insert($dataInsert);
+                if (!$rsInsert) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update staff failed.');
                 }
             }
             DB::commit();
@@ -225,7 +249,8 @@ class ManagerController extends Controller
                     DB::rollBack();
                     return self::responseERR('ERR400xxx', 'Update staff failed2.');
                 }
-            } elseif ($request->has('shiftIds')) {
+            }
+            if ($request->has('shiftIds')) {
                 $shiftIds = array_unique($request->shiftIds);
                 $shiftFound = Shift::whereIn(Shift::COL_ID, $shiftIds)
                     ->where(Shift::COL_STORE_ID, $storeId)->pluck(Shift::COL_ID);
@@ -396,13 +421,13 @@ class ManagerController extends Controller
             $shifts = Shift::where(Shift::COL_STORE_ID, $storeId)->get();
 
             $data = [
-                'shifts' => $shifts,
+                'shifts' => Shift::mergeShift($shifts),
             ];
 
             return self::responseST('ST200xxx', 'Get all shifts successfully.', $data);
         } catch (Exception $ex) {
             DB::rollBack();
-            return self::responseEX('EX500xxx', $ex->getMessage());
+            return self::responseEX('EX500xx1', $ex->getMessage());
         }
     }
 

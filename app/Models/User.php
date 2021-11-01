@@ -138,7 +138,7 @@ class User extends Authenticatable
             $shifts = UserShift::with('shift')
                 ->where(UserShift::COL_USER_ID, $this->{User::COL_ID})
                 ->get()->pluck('shift');
-            return $shifts;
+            return Shift::mergeShift($shifts);
         }
     }
 

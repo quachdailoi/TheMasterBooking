@@ -80,7 +80,7 @@ class Shift extends CommonModel
     {
         $validatedFields = [
             self::VAL_START_TIME => 'required|date_format:H:i',
-            self::VAL_END_TIME => 'required|date_format:H:i|after:'.self::VAL_START_TIME,
+            self::VAL_END_TIME => 'required|date_format:H:i|after:' . self::VAL_START_TIME,
             self::VAL_DAY_IN_WEEK => 'required|between:0,7',
             self::VAL_SHIFT_NAME => 'required',
             self::VAL_STORE_ID => 'nullable|numeric',
@@ -93,5 +93,20 @@ class Shift extends CommonModel
         ];
 
         return CommonModel::validate($data, $validatedFields, $errorCode);
+    }
+
+    public static function mergeShift($shifts)
+    {
+        $dayInWeekShift = [];
+
+        foreach ($shifts as $shift) {
+            $dayInWeek = $shift->{Shift::COL_DAY_IN_WEEK};
+            $dayShift = $dayInWeekShift[$dayInWeek] ?? [];
+            array_push($dayShift, $shift);
+
+            $dayInWeekShift[$dayInWeek] = $dayShift;
+        }
+
+        return $dayInWeekShift;
     }
 }
