@@ -120,7 +120,6 @@ class ProductOrderController extends Controller
 
             Mail::to($email)->send(new \App\Mail\OrderDetailsMail($details));
             //dispatch(new SendOrderDetailsMail($details));
-            error_log('Some message here123.');
             // clear cart
             $currentUser->{User::COL_CART} = null;
             $currentUser->save();

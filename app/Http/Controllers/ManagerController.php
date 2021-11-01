@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\File;
+use App\Models\Product;
+use App\Models\ProductOrder;
 use App\Models\Role;
 use App\Models\ServiceOrder;
 use App\Models\Shift;
@@ -35,6 +37,8 @@ class ManagerController extends Controller
     const API_URL_GET_SERVICE_ORDER = 'service-order/get';
     const API_URL_CONFIRM_SERVICE_ORDER = 'service-order/confirm/{orderId}';
 
+    const API_URL_GET_PRODUCT_ORDER = 'product-order/get';
+
     /** Method */
     const METHOD_CREATE_STAFF = 'createStaff';
     const METHOD_UPDATE_STAFF = 'updateStaff';
@@ -49,6 +53,8 @@ class ManagerController extends Controller
 
     const METHOD_FILTER_SERVICE_ORDER = 'filterServiceOrder';
     const METHOD_CONFIRM_SERVICE_ORDER = 'comfirmServiceOrder';
+
+    const METHOD_FILTER_PRODUCT_ORDER = 'filterProductOrder';
 
     /**
      * @functionName: createStaff
@@ -613,6 +619,66 @@ class ManagerController extends Controller
                 return self::responseERR('ERR400xxx', 'Confirm service order failed.');
             }
             return self::responseST('ST200xxx', 'Confirm service order successfully.');
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: filterProductOrder
+     * @type:         public
+     * @param:        Request $request
+     * @return:       String(Json)
+     */
+    public function filterProductOrder(Request $request)
+    {
+        if ($this->isAdmin() and !$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $today = new DateTime();
+            $today = $today->format('Y-m-d');
+            $itemPerPage = $request->input(ProductOrder::VAL_ITEM_PER_PAGE, ProductOrder::ITEM_PER_PAGE_DEFAULT);
+            $page = $request->input(ProductOrder::VAL_PAGE, ProductOrder::PAGE_DEFAULT);
+            $sortBy = $request->input(ProductOrder::VAL_SORT_BY, ProductOrder::COL_ID);
+            $sortOrder = $request->input(ProductOrder::VAL_SORT_ORDER, ProductOrder::ASC_ORDER);
+            $fromDate = $request->input(ProductOrder::VAL_FROM_DATE, $today);
+            $toDate = $request->input(ProductOrder::VAL_TO_DATE, $today);
+            $validator = ProductOrder::validator([
+                ProductOrder::VAL_ITEM_PER_PAGE => $itemPerPage,
+                ProductOrder::VAL_PAGE => $page,
+                ProductOrder::VAL_SORT_BY => $sortBy,
+                ProductOrder::VAL_SORT_ORDER => $sortOrder,
+                ProductOrder::VAL_FROM_DATE => $fromDate,
+                ProductOrder::VAL_TO_DATE => $toDate,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $query = ProductOrder::query();
+            $fromDate = $fromDate . ' 00:00:00';
+            $toDate = $toDate . ' 23:59:59';
+
+            $query = $query->whereBetween(ProductOrder::COL_ORDER_DATE, [$fromDate, $toDate]);
+            $copyQuery = $query;
+            $count = $query->count();
+            $maxPages = ceil($count/$itemPerPage);
+            if ($page < 1) {
+                $page = 1;
+            }
+            if ($page > $maxPages) {
+                $page = $maxPages;
+            }
+            $skip = ($page - 1) * $itemPerPage;
+
+            $data = $copyQuery->orderBy($sortBy, $sortOrder)
+                ->skip($skip)->take($itemPerPage)->get();
+            $dataResponse = [
+                'maxOfPage' => $maxPages,
+                'orders' => $data,
+            ];
+
+            return self::responseST('ST200xxx', 'Get product orders successfully', $dataResponse);
         } catch (Exception $ex) {
             return self::responseEX('EX500xxx', $ex->getMessage());
         }

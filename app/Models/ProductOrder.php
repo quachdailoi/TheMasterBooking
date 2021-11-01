@@ -31,6 +31,20 @@ class ProductOrder extends CommonModel
     const VAL_RECEIVER_NAME = 'receiverName';
     const VAL_SHIPPING_METHOD = 'shippingMethod';
     const VAL_PAYMENT_METHOD = 'paymentMethod';
+    const VAL_SORT_BY = 'sortBy';
+    const VAL_SORT_ORDER = 'sortOrder';
+    const VAL_ITEM_PER_PAGE = 'itemPerPage';
+    const VAL_PAGE = 'page';
+    const VAL_FROM_DATE = 'fromDate';
+    const VAL_TO_DATE = 'toDate';
+
+    /** Sort order */
+    const ASC_ORDER = 'asc';
+    const DESC_ORDER = 'desc';
+
+    /** default value */
+    const ITEM_PER_PAGE_DEFAULT = 10;
+    const PAGE_DEFAULT = 1;
 
     // shipping method
     const FAST_SHIPPING = 0;
@@ -107,6 +121,7 @@ class ProductOrder extends CommonModel
     public static function validator(array $data)
     {
         $validatedFields = [
+            self::COL_ID => 'required|numeric',
             self::COL_USER_ID => 'required|numeric',
             self::COL_AMOUNT => 'required|numeric',
             self::COL_ADDRESS => 'required',
