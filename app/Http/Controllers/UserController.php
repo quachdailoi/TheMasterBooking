@@ -17,6 +17,7 @@ use App\CodeAndMessage\UserMessage as UM;
 use App\Jobs\SendVerificationMail;
 use App\Models\File;
 use App\Models\Product;
+use App\Models\ServiceOrder;
 use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
@@ -36,6 +37,10 @@ class UserController extends Controller
     const API_URL_GET_CART = '/get-cart';
     const API_URL_UPDATE_CART = '/update-cart';
 
+    const API_URL_GET_PRODUCT_ORDERS = 'product-order/get';
+    const API_URL_GET_SERVICE_ORDERS = 'service-order/get';
+    const API_URL_CANCEL_SERVICE_ORDER = 'service-order/cancel/{orderId}';
+
     /** Method */
     const METHOD_LOGIN = 'login';
     const METHOD_REGISTER = 'register';
@@ -47,6 +52,10 @@ class UserController extends Controller
     const METHOD_UPDATE_PROFILE = 'updateProfile';
     const METHOD_GET_CART = 'getCart';
     const METHOD_UPDATE_CART = 'updateCart';
+
+    const METHOD_GET_PRODUCT_ORDERS = 'getProductOrders';
+    const METHOD_GET_SERVICE_ORDERS = 'getServiceOrders';
+    const METHOD_CANCEL_SERVICE_ORDER = 'cancelServiceOrder';
 
     // type of verified code
     const TYPE_REGISTER = '0';
@@ -597,6 +606,78 @@ class UserController extends Controller
             return self::responseST(UM::UPDATE_CART_SUCCESS, UM::M_UPDATE_CART_SUCCESS);
         } catch (Exception $ex) {
             return self::responseEX(UM::EXW_UPDATE_CART, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getAllProductOrders
+     * @type:         public
+     * @param:        Request
+     * @return:       String(Json)
+     */
+    public function getProductOrders(Request $request)
+    {
+        try {
+            $managerController = new ManagerController();
+            return $managerController->filterProductOrder($request);
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getAllServiceOrders
+     * @type:         public
+     * @param:        Request
+     * @return:       String(Json)
+     */
+    public function getServiceOrders(Request $request)
+    {
+        try {
+            $managerController = new ManagerController();
+            return $managerController->filterServiceOrder($request);
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: cancelServiceOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function cancelServiceOrder(int $orderId)
+    {
+        if (!$this->isCustomer()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $validator = ServiceOrder::validator([
+                ServiceOrder::COL_ID => $orderId,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $order = ServiceOrder::find($orderId);
+            if (!$order) {
+                return self::responseERR('ERR400xxx', 'Not found order.');
+            }
+            $userId = Auth::user()->{User::COL_ID};
+            if ($userId != $order->{ServiceOrder::COL_USER_ID}) {
+                return self::responseERR('ERR400xxx', 'This order not belong to you.');
+            }
+            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::JUST_ORDER
+                and $order->{ServiceOrder::COL_STATUS} != ServiceOrder::CONFIRM) {
+                return self::responseERR('ERR400xxx', 'Status of this order not valid for cancel.');
+            }
+            $order->{ServiceOrder::COL_STATUS} = ServiceOrder::CANCEL;
+            if (!$order->save()) {
+                return self::responseERR('ERR400xxx', 'Cancel service order failed.');
+            }
+            return self::responseST('ST200xxx', 'Cancel service order successfully.');
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
 }

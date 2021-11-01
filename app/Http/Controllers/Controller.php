@@ -95,4 +95,16 @@ class Controller extends BaseController
         $user = Auth::user();
         return $user->{User::COL_ROLE_ID} == User::MANAGER_ROLE_ID;
     }
+
+    public function isCustomer()
+    {
+        $user = Auth::user();
+        return $user->{User::COL_ROLE_ID} == User::CUSTOMER_ROLE_ID;
+    }
+
+    public function isStaff()
+    {
+        $user = Auth::user();
+        return $user->{User::COL_ROLE_ID} == User::STAFF_ROLE_ID;
+    }
 }

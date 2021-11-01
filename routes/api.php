@@ -37,6 +37,10 @@ Route::group(['middleware' => 'auth:api', 'prefix' => UserC::PREFIX], function (
     Route::post(UserC::API_URL_UPDATE_USER_PROFILE, [UserC::class, UserC::METHOD_UPDATE_PROFILE]);
     Route::get(UserC::API_URL_GET_CART, [UserC::class, UserC::METHOD_GET_CART]);
     Route::post(UserC::API_URL_UPDATE_CART, [UserC::class, UserC::METHOD_UPDATE_CART]);
+
+    Route::post(UserC::API_URL_GET_PRODUCT_ORDERS, [UserC::class, UserC::METHOD_GET_PRODUCT_ORDERS]);
+    Route::post(UserC::API_URL_GET_SERVICE_ORDERS, [UserC::class, UserC::METHOD_GET_SERVICE_ORDERS]);
+    Route::delete(UserC::API_URL_CANCEL_SERVICE_ORDER, [UserC::class, UserC::METHOD_CANCEL_SERVICE_ORDER]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => FileC::PREFIX], function () {
@@ -62,6 +66,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], functio
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductOrderC::PREFIX], function () {
     Route::post(ProductOrderC::API_URL_CHECKOUT, [ProductOrderC::class, ProductOrderC::METHOD_CHECKOUT]);
     Route::get(ProductOrderC::API_URL_GET_ORDER_DETAILS, [ProductOrderC::class, ProductOrderC::METHOD_GET_ORDER_DETAILS]);
+
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function () {

@@ -582,7 +582,7 @@ class ManagerController extends Controller
      */
     public function filterServiceOrder(Request $request)
     {
-        if (!$this->isManager()) {
+        if (!$this->isManager() and !$this->isAdmin() and !$this->isCustomer()) {
             return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
         }
         try {
@@ -605,13 +605,19 @@ class ManagerController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
-            $storeId = Auth::user()->{User::COL_STORE_ID};
+            $currentUser = Auth::user();
             $query = ServiceOrder::query();
             $fromDate = $fromDate . ' 00:00:00';
             $toDate = $toDate . ' 23:59:59';
 
-            $query = $query->where(ServiceOrder::COL_STORE_ID, $storeId)
-                ->whereBetween(ServiceOrder::COL_ORDER_DATE, [$fromDate, $toDate]);
+            $query = $query->whereBetween(ServiceOrder::COL_ORDER_DATE, [$fromDate, $toDate]);
+            if ($this->isManager()) {
+                $query = $query->where(ServiceOrder::COL_STORE_ID, $currentUser->{User::COL_STORE_ID});
+            } elseif ($this->isCustomer()) {
+                $query = $query->where(ServiceOrder::COL_USER_ID, $currentUser->{User::COL_ID});
+            } elseif ($this->isAdmin() and $request->has('storeId')) {
+                $query = $query->where(ServiceOrder::COL_STORE_ID, $request->storeId);
+            }
             $copyQuery = $query;
             $count = $query->count();
             $maxPages = ceil($count/$itemPerPage);
@@ -683,7 +689,7 @@ class ManagerController extends Controller
      */
     public function filterProductOrder(Request $request)
     {
-        if ($this->isAdmin() and !$this->isManager()) {
+        if (!$this->isAdmin() and !$this->isCustomer()) {
             return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
         }
         try {
@@ -709,8 +715,11 @@ class ManagerController extends Controller
             $query = ProductOrder::query();
             $fromDate = $fromDate . ' 00:00:00';
             $toDate = $toDate . ' 23:59:59';
-
             $query = $query->whereBetween(ProductOrder::COL_ORDER_DATE, [$fromDate, $toDate]);
+            $currentUser = Auth::user();
+            if ($currentUser->{User::COL_ROLE_ID} == User::CUSTOMER_ROLE_ID) {
+                $query = $query->where(ProductOrder::COL_USER_ID, $currentUser->{User::COL_ID});
+            }
             $copyQuery = $query;
             $count = $query->count();
             $maxPages = ceil($count/$itemPerPage);
