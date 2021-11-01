@@ -106,7 +106,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $appends = ['avatar', 'shifts'];
+    protected $appends = ['avatar', 'shifts', 'skills'];
 
     /**
      * Get the user's avatar.
@@ -139,6 +139,21 @@ class User extends Authenticatable
                 ->where(UserShift::COL_USER_ID, $this->{User::COL_ID})
                 ->get()->pluck('shift');
             return Shift::mergeShift($shifts);
+        }
+    }
+
+    /**
+     * Get the staff's skill.
+     *
+     * @return string
+     */
+    public function getSkillsAttribute()
+    {
+        if ($this->{self::COL_ROLE_ID} = self::STAFF_ROLE_ID) {
+            $skills = UserSkill::with('skill')
+                ->where(UserSkill::COL_USER_ID, $this->{User::COL_ID})
+                ->get()->pluck('skill');
+            return $skills;
         }
     }
 

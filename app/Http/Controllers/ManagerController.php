@@ -8,8 +8,10 @@ use App\Models\ProductOrder;
 use App\Models\Role;
 use App\Models\ServiceOrder;
 use App\Models\Shift;
+use App\Models\Skill;
 use App\Models\User;
 use App\Models\UserShift;
+use App\Models\UserSkill;
 use App\Models\VerifiedCode;
 use DateTime;
 use Exception;
@@ -78,8 +80,7 @@ class ManagerController extends Controller
 
             $validator = User::validator([
                 User::COL_NAME => $name,
-                User::COL_PHONE => $phone,
-                User::COL_EMAIL => $email,
+                User::VAL_USER_ID => $phone,
                 User::COL_PASSWORD => $password,
                 User::COL_GENDER => $gender,
                 User::COL_BIRTHDAY => $birthDay,
@@ -87,9 +88,7 @@ class ManagerController extends Controller
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
-            if (!$phone) {
-                return self::responseERR('ERR400xxx', 'Staffs must have phone number.');
-            }
+
             $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
 
             $storeId = Auth::user()->{User::COL_STORE_ID};
@@ -162,6 +161,29 @@ class ManagerController extends Controller
                     return self::responseERR('ERR400xxx', 'Update staff failed.');
                 }
             }
+            if ($request->has('skillIds')) {
+                $skillIds = array_unique($request->skillIds);
+                $skillFound = Skill::whereIn(Skill::COL_ID, $skillIds)
+                    ->pluck(Skill::COL_ID);
+                if (count($skillIds) != count($skillFound)) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update staff failed - there are invalid skills.');
+                }
+
+                $dataInsert = [];
+                foreach ($skillIds as $skillId) {
+                    $data = [
+                        UserSkill::COL_USER_ID => $staffId,
+                        UserSkill::COL_SKILL_ID => $skillId,
+                    ];
+                    array_push($dataInsert, $data);
+                }
+                $rsInsert = UserSkill::insert($dataInsert);
+                if (!$rsInsert) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update staff failed.');
+                }
+            }
             DB::commit();
             $staff = User::find($staff->{User::COL_ID});
             return self::responseST('ST200xxx', 'Create staff successfully.', ['newStaff' => $staff]);
@@ -220,18 +242,15 @@ class ManagerController extends Controller
 
             $validator = User::validator([
                 User::COL_NAME => $name,
-                User::COL_PHONE => $phone,
-                User::COL_EMAIL => $email,
+                User::VAL_USER_ID => $phone,
                 User::COL_PASSWORD => $password,
                 User::COL_GENDER => $gender,
                 User::COL_BIRTHDAY => $birthDay,
-            ]);
+            ], VerifiedCode::PHONE_CHANNEL);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
-            if (!$phone) {
-                return self::responseERR('ERR400xxx', 'Staffs must have phone number.');
-            }
+
             $request->validate([File::VAL_FILE => File::FILE_VALIDATIONS[File::IMAGE_TYPE]]);
 
             $storeId = Auth::user()->{User::COL_STORE_ID};
@@ -287,6 +306,33 @@ class ManagerController extends Controller
                     array_push($dataInsert, $data);
                 }
                 $rsInsert = UserShift::insert($dataInsert);
+                if (!$rsInsert) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update staff failed.');
+                }
+            }
+
+            if ($request->has('skillIds')) {
+                $skillIds = array_unique($request->skillIds);
+                $skillFound = Skill::whereIn(Skill::COL_ID, $skillIds)
+                    ->pluck(Skill::COL_ID);
+                if (count($skillIds) != count($skillFound)) {
+                    DB::rollBack();
+                    return self::responseERR('ERR400xxx', 'Update staff failed - there are invalid skills.');
+                }
+
+                UserSkill::where(UserSkill::COL_USER_ID, $staffId)
+                    ->whereIn(UserSkill::COL_SKILL_ID, $skillIds)->delete();
+
+                $dataInsert = [];
+                foreach ($skillIds as $skillId) {
+                    $data = [
+                        UserSkill::COL_USER_ID => $staffId,
+                        UserSkill::COL_SKILL_ID => $skillId,
+                    ];
+                    array_push($dataInsert, $data);
+                }
+                $rsInsert = UserSkill::insert($dataInsert);
                 if (!$rsInsert) {
                     DB::rollBack();
                     return self::responseERR('ERR400xxx', 'Update staff failed.');
