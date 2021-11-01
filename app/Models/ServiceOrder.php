@@ -5,6 +5,8 @@ namespace App\Models;
 use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class ServiceOrder extends CommonModel
 {
@@ -29,6 +31,20 @@ class ServiceOrder extends CommonModel
     const VAL_ORDER_DATE = 'orderDate';
     const VAL_USER_NAME = 'userName';
     const VAL_STORE_ID = 'storeId';
+    const VAL_SORT_BY = 'sortBy';
+    const VAL_SORT_ORDER = 'sortOrder';
+    const VAL_ITEM_PER_PAGE = 'itemPerPage';
+    const VAL_PAGE = 'page';
+    const VAL_FROM_DATE = 'fromDate';
+    const VAL_TO_DATE = 'toDate';
+
+    /** Sort order */
+    const ASC_ORDER = 'asc';
+    const DESC_ORDER = 'desc';
+
+    /** default value */
+    const ITEM_PER_PAGE_DEFAULT = 10;
+    const PAGE_DEFAULT = 1;
 
     //value for status
     const CANCEL = 0;
@@ -86,6 +102,7 @@ class ServiceOrder extends CommonModel
         $now = new DateTime();
         $nowStr = $now->format('Y-m-d H:i:s');
         $validatedFields = [
+            self::COL_ID => "required|numeric",
             self::VAL_USER_ID => 'required|numeric',
             self::COL_AMOUNT => 'required|double',
             self::VAL_ORDER_DATE => "required|date_format:Y-m-d H:i:s|before_or_equal:$nowStr",
@@ -97,11 +114,17 @@ class ServiceOrder extends CommonModel
             self::COL_SERVICES => 'required|array',
             self::VAL_STORE_ID => 'required|numeric',
             'serviceIds' => 'required|array',
+            self::VAL_PAGE => 'numeric',
+            self::VAL_ITEM_PER_PAGE => 'numeric',
+            self::VAL_SORT_ORDER => 'in:asc,desc',
+            self::VAL_FROM_DATE => 'date_format:Y-m-d',
+            self::VAL_TO_DATE => 'date_format:Y-m-d|after_or_equal:'.self::VAL_FROM_DATE,
+            self::VAL_SORT_BY => 'in:id,order_date',
         ];
         $errorCode = [
             'required' => ':attribute is required.',
             'numeric' => ':attribute must be a number',
-            'date_format' => 'Order datetime must be in format Year-month-day hour-minute-second',
+            'date_format' => 'Order datetime must be in format Year-month-day',
             'before_or_equal' => 'Order datetime must be after now',
         ];
 

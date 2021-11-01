@@ -42,7 +42,7 @@ class ProductOrderController extends Controller
             $receiverName = $request->{ProductOrder::VAL_RECEIVER_NAME};
             $shippingMethod = $request->{ProductOrder::VAL_SHIPPING_METHOD};
             $paymentMethod = $request->{ProductOrder::VAL_PAYMENT_METHOD};
-            $notes = $request->{ProductOrder::COL_NOTES};
+            $note = $request->{ProductOrder::COL_NOTE};
 
             $validator = ProductOrder::validator([
                 ProductOrder::COL_ADDRESS => $address,
@@ -51,7 +51,7 @@ class ProductOrderController extends Controller
                 ProductOrder::VAL_RECEIVER_NAME => $receiverName,
                 ProductOrder::VAL_SHIPPING_METHOD => $shippingMethod,
                 ProductOrder::VAL_PAYMENT_METHOD => $paymentMethod,
-                ProductOrder::COL_NOTES => $notes,
+                ProductOrder::COL_NOTE => $note,
             ]);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
@@ -72,7 +72,7 @@ class ProductOrderController extends Controller
                 ProductOrder::COL_RECEIVER_NAME => $receiverName,
                 ProductOrder::COL_SHIPPING_METHOD => $shippingMethod,
                 ProductOrder::COL_PAYMENT_METHOD => $paymentMethod,
-                ProductOrder::COL_NOTES => $notes,
+                ProductOrder::COL_NOTE => $note,
             ];
 
             // create product order

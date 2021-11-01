@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\File;
 use App\Models\Role;
+use App\Models\ServiceOrder;
 use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserShift;
+use DateTime;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ManagerController extends Controller
 {
@@ -29,6 +32,9 @@ class ManagerController extends Controller
     const API_URL_DELETE_SHIFT = 'shift/delete/{shiftId}';
     const API_URL_GET_ALL_SHIFTS = 'shift/get-all';
 
+    const API_URL_GET_SERVICE_ORDER = 'service-order/get';
+    const API_URL_CONFIRM_SERVICE_ORDER = 'service-order/confirm/{orderId}';
+
     /** Method */
     const METHOD_CREATE_STAFF = 'createStaff';
     const METHOD_UPDATE_STAFF = 'updateStaff';
@@ -40,6 +46,9 @@ class ManagerController extends Controller
     const METHOD_UPDATE_SHIFT = 'updateShift';
     const METHOD_DELETE_SHIFT = 'deleteShift';
     const METHOD_GET_ALL_SHIFTS = 'getAllShifts';
+
+    const METHOD_FILTER_SERVICE_ORDER = 'filterServiceOrder';
+    const METHOD_CONFIRM_SERVICE_ORDER = 'comfirmServiceOrder';
 
     /**
      * @functionName: createStaff
@@ -503,6 +512,107 @@ class ManagerController extends Controller
                 return self::responseERR('ERR400xxx', 'Delete shift failed.');
             }
             return self::responseST('ST200xxx', 'Delete shift successfully.');
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: filterServiceOrder
+     * @type:         public
+     * @param:        Request $request
+     * @return:       String(Json)
+     */
+    public function filterServiceOrder(Request $request)
+    {
+        if (!$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $today = new DateTime();
+            $today = $today->format('Y-m-d');
+            $itemPerPage = $request->input(ServiceOrder::VAL_ITEM_PER_PAGE, ServiceOrder::ITEM_PER_PAGE_DEFAULT);
+            $page = $request->input(ServiceOrder::VAL_PAGE, ServiceOrder::PAGE_DEFAULT);
+            $sortBy = $request->input(ServiceOrder::VAL_SORT_BY, ServiceOrder::COL_ID);
+            $sortOrder = $request->input(ServiceOrder::VAL_SORT_ORDER, ServiceOrder::ASC_ORDER);
+            $fromDate = $request->input(ServiceOrder::VAL_FROM_DATE, $today);
+            $toDate = $request->input(ServiceOrder::VAL_TO_DATE, $today);
+            $validator = ServiceOrder::validator([
+                ServiceOrder::VAL_ITEM_PER_PAGE => $itemPerPage,
+                ServiceOrder::VAL_PAGE => $page,
+                ServiceOrder::VAL_SORT_BY => $sortBy,
+                ServiceOrder::VAL_SORT_ORDER => $sortOrder,
+                ServiceOrder::VAL_FROM_DATE => $fromDate,
+                ServiceOrder::VAL_TO_DATE => $toDate,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $storeId = Auth::user()->{User::COL_STORE_ID};
+            $query = ServiceOrder::query();
+            $fromDate = $fromDate . ' 00:00:00';
+            $toDate = $toDate . ' 23:59:59';
+
+            $query = $query->where(ServiceOrder::COL_STORE_ID, $storeId)
+                ->whereBetween(ServiceOrder::COL_ORDER_DATE, [$fromDate, $toDate]);
+            $copyQuery = $query;
+            $count = $query->count();
+            $maxPages = ceil($count/$itemPerPage);
+            if ($page < 1) {
+                $page = 1;
+            }
+            if ($page > $maxPages) {
+                $page = $maxPages;
+            }
+            $skip = ($page - 1) * $itemPerPage;
+
+            $data = $copyQuery->orderBy($sortBy, $sortOrder)
+                ->skip($skip)->take($itemPerPage)->get();
+            $dataResponse = [
+                'maxOfPage' => $maxPages,
+                'orders' => $data,
+            ];
+
+            return self::responseST('ST200xxx', 'Get service orders successfully', $dataResponse);
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: comfirmServiceOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function comfirmServiceOrder(int $orderId)
+    {
+        if (!$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $validator = ServiceOrder::validator([
+                ServiceOrder::COL_ID => $orderId,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $order = ServiceOrder::find($orderId);
+            if (!$order) {
+                return self::responseERR('ERR400xxx', 'Not found order.');
+            }
+            $storeId = Auth::user()->{User::COL_STORE_ID};
+            if ($storeId != $order->{ServiceOrder::COL_STORE_ID}) {
+                return self::responseERR('ERR400xxx', 'This order not belong to your store.');
+            }
+            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::JUST_ORDER) {
+                return self::responseERR('ERR400xxx', 'Status of this order not valid for confirming.');
+            }
+            $order->{ServiceOrder::COL_STATUS} = ServiceOrder::CONFIRM;
+            if (!$order->save()) {
+                return self::responseERR('ERR400xxx', 'Confirm service order failed.');
+            }
+            return self::responseST('ST200xxx', 'Confirm service order successfully.');
         } catch (Exception $ex) {
             return self::responseEX('EX500xxx', $ex->getMessage());
         }

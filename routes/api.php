@@ -111,4 +111,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ManagerC::PREFIX], functio
     Route::get(ManagerC::API_URL_GET_ALL_SHIFTS, [ManagerC::class, ManagerC::METHOD_GET_ALL_SHIFTS]);
     Route::post(ManagerC::API_URL_UPDATE_SHIFT, [ManagerC::class, ManagerC::METHOD_UPDATE_SHIFT]);
     Route::delete(ManagerC::API_URL_DELETE_SHIFT, [ManagerC::class, ManagerC::METHOD_DELETE_SHIFT]);
+
+    Route::post(ManagerC::API_URL_GET_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_FILTER_SERVICE_ORDER]);
+    Route::get(ManagerC::API_URL_CONFIRM_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_CONFIRM_SERVICE_ORDER]);
 });

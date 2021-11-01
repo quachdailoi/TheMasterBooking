@@ -23,7 +23,7 @@ class ProductOrder extends CommonModel
     const COL_SHIPPING_METHOD = 'shipping_method';
     const COL_PAYMENT_METHOD = 'payment_method';
     const COL_PRODUCTS = 'products';
-    const COL_NOTES = 'notes';
+    const COL_NOTE = 'note';
 
     /** value of model */
     const VAL_USER_ID = 'userId';
@@ -115,7 +115,7 @@ class ProductOrder extends CommonModel
             self::COL_RECEIVER_NAME => 'required',
             self::COL_SHIPPING_METHOD => 'required|between:'.self::FAST_SHIPPING.','.self::STANDARD_SHIPPING,
             self::COL_PAYMENT_METHOD => 'required|between:'.self::MOMO_PAYMENT.','.self::COD_PAYMENT,
-            self::COL_NOTES => 'nullable'
+            self::COL_NOTE => 'nullable'
         ];
         $errorCode = [
             'required' => ':attribute is required.',
