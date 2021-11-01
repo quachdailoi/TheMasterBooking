@@ -10,6 +10,7 @@ use App\Models\ServiceOrder;
 use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserShift;
+use App\Models\VerifiedCode;
 use DateTime;
 use Exception;
 use Illuminate\Http\Request;
@@ -82,7 +83,7 @@ class ManagerController extends Controller
                 User::COL_PASSWORD => $password,
                 User::COL_GENDER => $gender,
                 User::COL_BIRTHDAY => $birthDay,
-            ]);
+            ], VerifiedCode::PHONE_CHANNEL);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
             }
