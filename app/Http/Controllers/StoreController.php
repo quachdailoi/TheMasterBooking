@@ -380,7 +380,7 @@ class StoreController extends Controller
                     'slots' => $arrayTimeBooking,
                 ]);
                 $countDay += 1;
-                $date->modify("+ $countDay days");
+                $date->modify("+ 1 days");
             }
 
             return self::responseST('ST200xxx', 'Get booking time successfully.', $bookingTime);

@@ -42,6 +42,8 @@ class ManagerController extends Controller
 
     const API_URL_GET_PRODUCT_ORDER = 'product-order/get';
 
+    const API_URL_GET_ALL_SKILLS = 'skill/get-all';
+
     /** Method */
     const METHOD_CREATE_STAFF = 'createStaff';
     const METHOD_UPDATE_STAFF = 'updateStaff';
@@ -58,6 +60,8 @@ class ManagerController extends Controller
     const METHOD_CONFIRM_SERVICE_ORDER = 'comfirmServiceOrder';
 
     const METHOD_FILTER_PRODUCT_ORDER = 'filterProductOrder';
+
+    const METHOD_GET_ALL_SKILLS = 'getAllSkills';
 
     /**
      * @functionName: createStaff
@@ -728,6 +732,31 @@ class ManagerController extends Controller
             return self::responseST('ST200xxx', 'Get product orders successfully', $dataResponse);
         } catch (Exception $ex) {
             return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: getAllSkills
+     * @type:         public
+     * @param:        Empty
+     * @return:       String(Json)
+     */
+    public function getAllSkills()
+    {
+        if (!$this->isAdmin() and !$this->isManager()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $skills = Skill::get();
+
+            $data = [
+                'skills' => Shift::mergeShift($skills),
+            ];
+
+            return self::responseST('ST200xxx', 'Get all skills successfully.', $data);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return self::responseEX('EX500xx1', $ex->getMessage());
         }
     }
 }
