@@ -67,7 +67,7 @@ class ProductOrder extends CommonModel
         self::COL_SHIPPING_METHOD,
         self::COL_PAYMENT_METHOD,
         self::COL_PRODUCTS,
-        self::COL_NOTES,
+        self::COL_NOTE,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
         self::COL_DELETED_AT,

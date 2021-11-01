@@ -106,7 +106,7 @@
 				                    <b>Ghi chú :</b>
 				              </td>
 				              <td colspan="4">
-                                    {{ $order->notes ?? "Không có ghi chú" }}
+                                    {{ $order->note ?? "Không có ghi chú" }}
 				              </td>
 				            </tr>
                             <tr>
