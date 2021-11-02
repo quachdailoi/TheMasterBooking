@@ -22,10 +22,12 @@ class ProductOrderController extends Controller
     /** Api url */
     const API_URL_CHECKOUT = '/checkout';
     const API_URL_GET_ORDER_DETAILS = '/get-details/{orderId}';
+    const API_URL_CANCEL_PRODUCT_ORDER = '/cancel/{orderId}';
 
     /** Method */
-    const METHOD_CHECKOUT  = 'checkout';
+    const METHOD_CHECKOUT = 'checkout';
     const METHOD_GET_ORDER_DETAILS = 'getOrderDetails';
+    const METHOD_CANCEL_ORDER = 'cancelOrder';
 
     /**
      * @functionName: checkout
@@ -73,6 +75,7 @@ class ProductOrderController extends Controller
                 ProductOrder::COL_SHIPPING_METHOD => $shippingMethod,
                 ProductOrder::COL_PAYMENT_METHOD => $paymentMethod,
                 ProductOrder::COL_NOTE => $note,
+                ProductOrder::COL_STATUS => ProductOrder::NOT_CONFIRMED,
             ];
 
             // create product order
@@ -146,6 +149,46 @@ class ProductOrderController extends Controller
             }
             return self::responseST('ST200xxx', 'Get order details successfully.', $order);
         } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: cancelOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function cancelOrder($orderId)
+    {
+        if (!$this->isCustomer()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $orderId = (int) $orderId;
+            $order = ProductOrder::find($orderId);
+            $currentUserId = Auth::user()->{User::COL_ID};
+            if ($order->{ProductOrder::COL_USER_ID} != $currentUserId) {
+                return self::responseERR('ERR400xxx', 'This is not your order.');
+            }
+
+            $orderStatus = $order->{ProductOrder::COL_STATUS};
+            if ($orderStatus == ProductOrder::ADMIN_CANCELED
+                or $orderStatus == ProductOrder::COMPLETED
+                or $orderStatus == ProductOrder::CUSTOMER_CANCELED) {
+                return self::responseERR('ERR400xxx', 'This order was '
+                    . ($orderStatus != ProductOrder::COMPLETED ? 'canceled.' : 'complete.'));
+            }
+            $order->{ProductOrder::COL_STATUS} = ProductOrder::CUSTOMER_CANCELED;
+            DB::beginTransaction();
+            if (!$order->save() or !ProductOrder::returnQuantityProduct($orderId)) {
+                DB::rollBack();
+                return self::responseERR('ERR400xxx', 'Cancel order failed.');
+            }
+            DB::commit();
+            return self::responseST('ST200xxx', 'Cancel order successfully.');
+        } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }

@@ -62,7 +62,13 @@ class ProductOrder extends CommonModel
         'Thanh toán khi nhận hàng'
     ];
 
-    /** relations */
+    /** order status */
+    const CUSTOMER_CANCELED = 0;
+    const ADMIN_CANCELED = 1;
+    const NOT_CONFIRMED = 2;
+    const CONFIRMED = 3;
+    const DELIVERY = 4;
+    const COMPLETED = 5;
 
     /**
      * The attributes that are mass assignable.
@@ -148,5 +154,22 @@ class ProductOrder extends CommonModel
     public function user()
     {
         return $this->hasOne(User::class, User::COL_ID, self::COL_USER_ID);
+    }
+
+    public static function returnQuantityProduct(int $orderId)
+    {
+        $order = ProductOrder::find($orderId);
+
+        $productIds = collect($order->{ProductOrder::COL_PRODUCTS})->pluck(Product::COL_ID);
+        $values = collect($order->{ProductOrder::COL_PRODUCTS})->pluck(Product::COL_QUANTITY);
+        $products = Product::whereIn(Product::COL_ID, $productIds)->get();
+        for ($i = 0; $i < count($productIds); $i++) {
+            $product = $products[$i];
+            $product->{Product::COL_QUANTITY} += $values[$i];
+            if (!$product->save()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

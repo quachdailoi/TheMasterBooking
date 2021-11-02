@@ -41,6 +41,8 @@ class ManagerController extends Controller
     const API_URL_CONFIRM_SERVICE_ORDER = 'service-order/confirm/{orderId}';
 
     const API_URL_GET_PRODUCT_ORDER = 'product-order/get';
+    const API_URL_CANCEL_PRODUCT_ORDER = 'product-order/cancel/{orderId}';
+    const API_URL_CONFIRM_PRODUCT_ORDER = 'product-order/confirm/{orderId}';
 
     const API_URL_GET_ALL_SKILLS = 'skill/get-all';
 
@@ -60,6 +62,8 @@ class ManagerController extends Controller
     const METHOD_CONFIRM_SERVICE_ORDER = 'comfirmServiceOrder';
 
     const METHOD_FILTER_PRODUCT_ORDER = 'filterProductOrder';
+    const METHOD_CANCEL_PRODUCT_ORDER = 'cancelProductOrder';
+    const METHOD_CONFIRM_PRODUCT_ORDER = 'confirmProductOrder';
 
     const METHOD_GET_ALL_SKILLS = 'getAllSkills';
 
@@ -766,6 +770,71 @@ class ManagerController extends Controller
         } catch (Exception $ex) {
             DB::rollBack();
             return self::responseEX('EX500xx1', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: cancelProductOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function cancelProductOrder($orderId)
+    {
+        if (!$this->isAdmin()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $orderId = (int) $orderId;
+            $order = ProductOrder::find($orderId);
+
+            $orderStatus = $order->{ProductOrder::COL_STATUS};
+            if ($orderStatus == ProductOrder::ADMIN_CANCELED
+                or $orderStatus == ProductOrder::COMPLETED
+                or $orderStatus == ProductOrder::CUSTOMER_CANCELED) {
+                return self::responseERR('ERR400xxx', 'This order was '
+                    . ($orderStatus != ProductOrder::COMPLETED ? 'canceled.' : 'complete.'));
+            }
+            $order->{ProductOrder::COL_STATUS} = ProductOrder::ADMIN_CANCELED;
+            DB::beginTransaction();
+            if (!$order->save() or !ProductOrder::returnQuantityProduct($orderId)) {
+                DB::rollBack();
+                return self::responseERR('ERR400xxx', 'Cancel order failed.');
+            }
+            DB::commit();
+            return self::responseST('ST200xxx', 'Cancel order successfully.');
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: confirmProductOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function confirmProductOrder($orderId)
+    {
+        if (!$this->isAdmin()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $orderId = (int) $orderId;
+            $order = ProductOrder::find($orderId);
+
+            $orderStatus = $order->{ProductOrder::COL_STATUS};
+            if ($orderStatus != ProductOrder::NOT_CONFIRMED) {
+                return self::responseERR('ERR400xxx', 'This order must be at not comfirm status.');
+            }
+            $order->{ProductOrder::COL_STATUS} = ProductOrder::CONFIRMED;
+            if (!$order->save()) {
+                return self::responseERR('ERR400xxx', 'Confirm order failed.');
+            }
+            return self::responseST('ST200xxx', 'Confirm order successfully.');
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
 }
