@@ -759,7 +759,7 @@ class ManagerController extends Controller
             $skills = Skill::get();
 
             $data = [
-                'skills' => Shift::mergeShift($skills),
+                'skills' => $skills,
             ];
 
             return self::responseST('ST200xxx', 'Get all skills successfully.', $data);
