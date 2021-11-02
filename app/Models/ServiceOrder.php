@@ -51,6 +51,7 @@ class ServiceOrder extends CommonModel
     const JUST_ORDER = 1;
     const CONFIRM = 2;
     const USED = 3;
+    const MANAGE_CANCEL = 4;
 
     /**
      * The attributes that are mass assignable.

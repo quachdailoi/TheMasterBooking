@@ -119,6 +119,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ManagerC::PREFIX], functio
 
     Route::post(ManagerC::API_URL_GET_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_FILTER_SERVICE_ORDER]);
     Route::get(ManagerC::API_URL_CONFIRM_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_CONFIRM_SERVICE_ORDER]);
+    Route::get(ManagerC::API_URL_CANCEL_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_CANCEL_SERVICE_ORDER]);
 
     Route::post(ManagerC::API_URL_GET_PRODUCT_ORDER, [ManagerC::class, ManagerC::METHOD_FILTER_PRODUCT_ORDER]);
     Route::get(ManagerC::API_URL_CANCEL_PRODUCT_ORDER, [ManagerC::class, ManagerC::METHOD_CANCEL_PRODUCT_ORDER]);

@@ -39,6 +39,7 @@ class ManagerController extends Controller
 
     const API_URL_GET_SERVICE_ORDER = 'service-order/get';
     const API_URL_CONFIRM_SERVICE_ORDER = 'service-order/confirm/{orderId}';
+    const API_URL_CANCEL_SERVICE_ORDER = 'service-order/cancel/{orderId}';
 
     const API_URL_GET_PRODUCT_ORDER = 'product-order/get';
     const API_URL_CANCEL_PRODUCT_ORDER = 'product-order/cancel/{orderId}';
@@ -60,6 +61,7 @@ class ManagerController extends Controller
 
     const METHOD_FILTER_SERVICE_ORDER = 'filterServiceOrder';
     const METHOD_CONFIRM_SERVICE_ORDER = 'comfirmServiceOrder';
+    const METHOD_CANCEL_SERVICE_ORDER = 'cancelServiceOrder';
 
     const METHOD_FILTER_PRODUCT_ORDER = 'filterProductOrder';
     const METHOD_CANCEL_PRODUCT_ORDER = 'cancelProductOrder';
@@ -833,6 +835,49 @@ class ManagerController extends Controller
                 return self::responseERR('ERR400xxx', 'Confirm order failed.');
             }
             return self::responseST('ST200xxx', 'Confirm order successfully.');
+        } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: cancelServiceOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function cancelServiceOrder(int $orderId)
+    {
+        if (!$this->isManager() and !$this->isAdmin()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $validator = ServiceOrder::validator([
+                ServiceOrder::COL_ID => $orderId,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $order = ServiceOrder::find($orderId);
+            if (!$order) {
+                return self::responseERR('ERR400xxx', 'Not found order.');
+            }
+            if ($this->isManager()) {
+                $manager = Auth::user();
+                $storeId =$manager->{User::COL_STORE_ID};
+                if ($storeId != $order->{ServiceOrder::COL_STORE_ID}) {
+                    return self::responseERR('ERR400xxx', 'This order is not belong to your store.');
+                }
+            }
+            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::JUST_ORDER
+                and $order->{ServiceOrder::COL_STATUS} != ServiceOrder::CONFIRM) {
+                return self::responseERR('ERR400xxx', 'Status of this order not valid for cancel.');
+            }
+            $order->{ServiceOrder::COL_STATUS} = ServiceOrder::MANAGE_CANCEL;
+            if (!$order->save()) {
+                return self::responseERR('ERR400xxx', 'Cancel service order failed.');
+            }
+            return self::responseST('ST200xxx', 'Cancel service order successfully.');
         } catch (Exception $ex) {
             return self::responseEX('EX500xxx', $ex->getMessage());
         }
