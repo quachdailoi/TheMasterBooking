@@ -674,10 +674,10 @@ class ManagerController extends Controller
             if ($storeId != $order->{ServiceOrder::COL_STORE_ID}) {
                 return self::responseERR('ERR400xxx', 'This order not belong to your store.');
             }
-            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::JUST_ORDER) {
+            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::NOT_COMFIRM) {
                 return self::responseERR('ERR400xxx', 'Status of this order not valid for confirming.');
             }
-            $order->{ServiceOrder::COL_STATUS} = ServiceOrder::CONFIRM;
+            $order->{ServiceOrder::COL_STATUS} = ServiceOrder::CONFIRMED;
             if (!$order->save()) {
                 return self::responseERR('ERR400xxx', 'Confirm service order failed.');
             }
@@ -781,13 +781,21 @@ class ManagerController extends Controller
      * @param:        int $orderId
      * @return:       String(Json)
      */
-    public function cancelProductOrder($orderId)
+    public function cancelProductOrder(Request $request, $orderId)
     {
         if (!$this->isAdmin()) {
             return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
         }
         try {
             $orderId = (int) $orderId;
+            $cancelReason = $request->{ProductOrder::VAL_CANCEL_REASON};
+            $validator = ProductOrder::validator([
+                ProductOrder::COL_ID => $orderId,
+                ProductOrder::VAL_CANCEL_REASON => $cancelReason,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
             $order = ProductOrder::find($orderId);
 
             $orderStatus = $order->{ProductOrder::COL_STATUS};
@@ -798,6 +806,7 @@ class ManagerController extends Controller
                     . ($orderStatus != ProductOrder::COMPLETED ? 'canceled.' : 'complete.'));
             }
             $order->{ProductOrder::COL_STATUS} = ProductOrder::ADMIN_CANCELED;
+            $order->{ProductOrder::COL_CANCEL_REASON} = $cancelReason;
             DB::beginTransaction();
             if (!$order->save() or !ProductOrder::returnQuantityProduct($orderId)) {
                 DB::rollBack();
@@ -846,14 +855,16 @@ class ManagerController extends Controller
      * @param:        int $orderId
      * @return:       String(Json)
      */
-    public function cancelServiceOrder(int $orderId)
+    public function cancelServiceOrder(Request $request, int $orderId)
     {
         if (!$this->isManager() and !$this->isAdmin()) {
             return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
         }
         try {
+            $cancelReason = $request->{ServiceOrder::VAL_CANCEL_REASON};
             $validator = ServiceOrder::validator([
                 ServiceOrder::COL_ID => $orderId,
+                ServiceOrder::VAL_CANCEL_REASON => $cancelReason,
             ]);
             if ($validator->fails()) {
                 return self::responseIER($validator->errors()->first());
@@ -869,11 +880,12 @@ class ManagerController extends Controller
                     return self::responseERR('ERR400xxx', 'This order is not belong to your store.');
                 }
             }
-            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::JUST_ORDER
-                and $order->{ServiceOrder::COL_STATUS} != ServiceOrder::CONFIRM) {
+            if ($order->{ServiceOrder::COL_STATUS} != ServiceOrder::NOT_COMFIRM
+                and $order->{ServiceOrder::COL_STATUS} != ServiceOrder::CONFIRMED) {
                 return self::responseERR('ERR400xxx', 'Status of this order not valid for cancel.');
             }
             $order->{ServiceOrder::COL_STATUS} = ServiceOrder::MANAGE_CANCEL;
+            $order->{ServiceOrder::COL_CANCEL_REASON} = $cancelReason;
             if (!$order->save()) {
                 return self::responseERR('ERR400xxx', 'Cancel service order failed.');
             }

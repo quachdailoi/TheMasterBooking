@@ -159,13 +159,21 @@ class ProductOrderController extends Controller
      * @param:        int $orderId
      * @return:       String(Json)
      */
-    public function cancelOrder($orderId)
+    public function cancelOrder(Request $request, $orderId)
     {
         if (!$this->isCustomer()) {
             return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
         }
         try {
             $orderId = (int) $orderId;
+            $cancelReason = $request->{ProductOrder::VAL_CANCEL_REASON};
+            $validator = ProductOrder::validator([
+                ProductOrder::COL_ID => $orderId,
+                ProductOrder::VAL_CANCEL_REASON => $cancelReason,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
             $order = ProductOrder::find($orderId);
             $currentUserId = Auth::user()->{User::COL_ID};
             if ($order->{ProductOrder::COL_USER_ID} != $currentUserId) {
@@ -180,6 +188,7 @@ class ProductOrderController extends Controller
                     . ($orderStatus != ProductOrder::COMPLETED ? 'canceled.' : 'complete.'));
             }
             $order->{ProductOrder::COL_STATUS} = ProductOrder::CUSTOMER_CANCELED;
+            $order->{ProductOrder::COL_CANCEL_REASON} = $cancelReason;
             DB::beginTransaction();
             if (!$order->save() or !ProductOrder::returnQuantityProduct($orderId)) {
                 DB::rollBack();

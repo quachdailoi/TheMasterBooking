@@ -40,7 +40,6 @@ Route::group(['middleware' => 'auth:api', 'prefix' => UserC::PREFIX], function (
 
     Route::post(UserC::API_URL_GET_PRODUCT_ORDERS, [UserC::class, UserC::METHOD_GET_PRODUCT_ORDERS]);
     Route::post(UserC::API_URL_GET_SERVICE_ORDERS, [UserC::class, UserC::METHOD_GET_SERVICE_ORDERS]);
-    Route::delete(UserC::API_URL_CANCEL_SERVICE_ORDER, [UserC::class, UserC::METHOD_CANCEL_SERVICE_ORDER]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => FileC::PREFIX], function () {
@@ -66,7 +65,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ProductC::PREFIX], functio
 Route::group(['middleware' => 'auth:api', 'prefix' => ProductOrderC::PREFIX], function () {
     Route::post(ProductOrderC::API_URL_CHECKOUT, [ProductOrderC::class, ProductOrderC::METHOD_CHECKOUT]);
     Route::get(ProductOrderC::API_URL_GET_ORDER_DETAILS, [ProductOrderC::class, ProductOrderC::METHOD_GET_ORDER_DETAILS]);
-    Route::get(ProductOrderC::API_URL_CANCEL_PRODUCT_ORDER, [ProductOrderC::class, ProductOrderC::METHOD_CANCEL_ORDER]);
+    Route::post(ProductOrderC::API_URL_CANCEL_PRODUCT_ORDER, [ProductOrderC::class, ProductOrderC::METHOD_CANCEL_ORDER]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => StoreC::PREFIX], function () {
@@ -103,6 +102,7 @@ Route::group(['middleware' => 'auth:api', 'prefix' => HomeController::PREFIX], f
 Route::group(['middleware' => 'auth:api', 'prefix' => ServiceOrderC::PREFIX], function () {
     Route::post(ServiceOrderC::API_URL_ORDER, [ServiceOrderC::class, ServiceOrderC::METHOD_ORDER]);
     Route::get(ServiceOrderC::API_URL_GET_ORDER_DETAILS, [ServiceOrderC::class, ServiceOrderC::METHOD_GET_ORDER_DETAILS]);
+    Route::post(ServiceOrderC::API_URL_CANCEL_ORDER, [ServiceOrderC::class, ServiceOrderC::METHOD_CANCEL_ORDER]);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => ManagerC::PREFIX], function () {
@@ -119,10 +119,10 @@ Route::group(['middleware' => 'auth:api', 'prefix' => ManagerC::PREFIX], functio
 
     Route::post(ManagerC::API_URL_GET_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_FILTER_SERVICE_ORDER]);
     Route::get(ManagerC::API_URL_CONFIRM_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_CONFIRM_SERVICE_ORDER]);
-    Route::get(ManagerC::API_URL_CANCEL_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_CANCEL_SERVICE_ORDER]);
+    Route::post(ManagerC::API_URL_CANCEL_SERVICE_ORDER, [ManagerC::class, ManagerC::METHOD_CANCEL_SERVICE_ORDER]);
 
     Route::post(ManagerC::API_URL_GET_PRODUCT_ORDER, [ManagerC::class, ManagerC::METHOD_FILTER_PRODUCT_ORDER]);
-    Route::get(ManagerC::API_URL_CANCEL_PRODUCT_ORDER, [ManagerC::class, ManagerC::METHOD_CANCEL_PRODUCT_ORDER]);
+    Route::post(ManagerC::API_URL_CANCEL_PRODUCT_ORDER, [ManagerC::class, ManagerC::METHOD_CANCEL_PRODUCT_ORDER]);
     Route::get(ManagerC::API_URL_CONFIRM_PRODUCT_ORDER, [ManagerC::class, ManagerC::METHOD_CONFIRM_PRODUCT_ORDER]);
 
     Route::get(ManagerC::API_URL_GET_ALL_SKILLS, [ManagerC::class, ManagerC::METHOD_GET_ALL_SKILLS]);

@@ -24,6 +24,7 @@ class ProductOrder extends CommonModel
     const COL_PAYMENT_METHOD = 'payment_method';
     const COL_PRODUCTS = 'products';
     const COL_NOTE = 'note';
+    const COL_CANCEL_REASON = 'cancel_reason';
 
     /** value of model */
     const VAL_USER_ID = 'userId';
@@ -37,6 +38,7 @@ class ProductOrder extends CommonModel
     const VAL_PAGE = 'page';
     const VAL_FROM_DATE = 'fromDate';
     const VAL_TO_DATE = 'toDate';
+    const VAL_CANCEL_REASON = 'cancelReason';
 
     /** Sort order */
     const ASC_ORDER = 'asc';
@@ -88,6 +90,7 @@ class ProductOrder extends CommonModel
         self::COL_PAYMENT_METHOD,
         self::COL_PRODUCTS,
         self::COL_NOTE,
+        self::COL_CANCEL_REASON,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
         self::COL_DELETED_AT,
@@ -136,7 +139,8 @@ class ProductOrder extends CommonModel
             self::COL_RECEIVER_NAME => 'required',
             self::COL_SHIPPING_METHOD => 'required|between:'.self::FAST_SHIPPING.','.self::STANDARD_SHIPPING,
             self::COL_PAYMENT_METHOD => 'required|between:'.self::MOMO_PAYMENT.','.self::COD_PAYMENT,
-            self::COL_NOTE => 'nullable'
+            self::COL_NOTE => 'nullable',
+            self::VAL_CANCEL_REASON => 'required|max:120',
         ];
         $errorCode = [
             'required' => ':attribute is required.',

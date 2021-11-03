@@ -22,10 +22,12 @@ class ServiceOrderController extends Controller
     /** Api url */
     const API_URL_ORDER = '/booking';
     const API_URL_GET_ORDER_DETAILS = '/get-details/{orderId}';
+    const API_URL_CANCEL_ORDER = '/cancel/{orderId}';
 
     /** Method */
     const METHOD_ORDER = 'order';
     const METHOD_GET_ORDER_DETAILS = 'getOrderDetails';
+    const METHOD_CANCEL_ORDER = 'cancelOrder';
 
     /**
      * @functionName: serviceOrder
@@ -83,6 +85,7 @@ class ServiceOrderController extends Controller
                 ServiceOrder::COL_NOTE => $note,
                 ServiceOrder::COL_STORE_ID => $storeId,
                 ServiceOrder::COL_SERVICES => $services,
+                ServiceOrder::COL_STATUS => ServiceOrder::NOT_COMFIRM,
             ];
             $order = ServiceOrder::create($dataOrder);
             if (!$order) {
@@ -116,6 +119,54 @@ class ServiceOrderController extends Controller
             }
             return self::responseST('ST200xxx', 'Get order details successfully.', $order);
         } catch (Exception $ex) {
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: cancelOrder
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function cancelOrder(Request $request, $orderId)
+    {
+        if (!$this->isCustomer()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $orderId = (int) $orderId;
+            $cancelReason = $request->{ServiceOrder::VAL_CANCEL_REASON};
+            $validator = ServiceOrder::validator([
+                ServiceOrder::COL_ID => $orderId,
+                ServiceOrder::VAL_CANCEL_REASON => $cancelReason,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $order = ServiceOrder::find($orderId);
+            $currentUserId = Auth::user()->{User::COL_ID};
+            if ($order->{ServiceOrder::COL_USER_ID} != $currentUserId) {
+                return self::responseERR('ERR400xxx', 'This is not your order.');
+            }
+
+            $orderStatus = $order->{ServiceOrder::COL_STATUS};
+            if ($orderStatus != ServiceOrder::CONFIRMED
+                and $orderStatus != ServiceOrder::NOT_COMFIRM) {
+                return self::responseERR('ERR400xxx', 'This order was '
+                    . ($orderStatus != ServiceOrder::USED ? 'canceled.' : 'used.'));
+            }
+            $order->{ServiceOrder::COL_STATUS} = ServiceOrder::CUSTOMER_CANCEL;
+            $order->{ServiceOrder::COL_CANCEL_REASON} = $cancelReason;
+            DB::beginTransaction();
+            if (!$order->save()) {
+                DB::rollBack();
+                return self::responseERR('ERR400xxx', 'Cancel order failed.');
+            }
+            DB::commit();
+            return self::responseST('ST200xxx', 'Cancel order successfully.');
+        } catch (Exception $ex) {
+            DB::rollBack();
             return self::responseEX('EX500xxx', $ex->getMessage());
         }
     }
