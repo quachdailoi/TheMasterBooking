@@ -26,6 +26,8 @@ class ServiceOrder extends CommonModel
     const COL_SERVICES = 'services';
     const COL_STORE_ID = 'store_id';
     const COL_CANCEL_REASON = 'cancel_reason';
+    const COL_RATING = 'rating';
+    const COL_FEED_BACK = 'feed_back';
 
     /** value of model */
     const VAL_USER_ID = 'userId';
@@ -39,6 +41,7 @@ class ServiceOrder extends CommonModel
     const VAL_FROM_DATE = 'fromDate';
     const VAL_TO_DATE = 'toDate';
     const VAL_CANCEL_REASON = 'cancelReason';
+    const VAL_FEED_BACK = 'feedback';
 
     /** Sort order */
     const ASC_ORDER = 'asc';
@@ -72,6 +75,8 @@ class ServiceOrder extends CommonModel
         self::COL_SERVICES,
         self::COL_STORE_ID,
         self::COL_CANCEL_REASON,
+        self::COL_RATING,
+        self::COL_FEED_BACK,
         self::COL_CREATED_AT,
         self::COL_UPDATED_AT,
         self::COL_DELETED_AT,
@@ -125,6 +130,8 @@ class ServiceOrder extends CommonModel
             self::VAL_TO_DATE => 'date_format:Y-m-d|after_or_equal:'.self::VAL_FROM_DATE,
             self::VAL_SORT_BY => 'in:id,order_date',
             self::VAL_CANCEL_REASON => 'required|max:120',
+            self::COL_RATING => 'required|numeric|between:0,5',
+            self::VAL_FEED_BACK => 'required|max:120',
         ];
         $errorCode = [
             'required' => ':attribute is required.',

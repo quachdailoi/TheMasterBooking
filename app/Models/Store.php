@@ -182,7 +182,7 @@ class Store extends CommonModel
         }
         $countBookingTime = DB::table('service_orders')->select('order_date', DB::raw('count(id) as slots'))
             ->whereIn('order_date', $arrayQueryDateTime)
-            ->where(ServiceOrder::COL_STATUS, ServiceOrder::CONFIRM)
+            ->where(ServiceOrder::COL_STATUS, ServiceOrder::CONFIRMED)
             ->groupBy('order_date')->pluck('slots', 'order_date');
         $store = Store::find($storeId);
         $maxBookingSlots = (int)$store->{Store::COL_SERVICE_SLOTS};

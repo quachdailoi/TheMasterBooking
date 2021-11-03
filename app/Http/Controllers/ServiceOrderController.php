@@ -23,11 +23,13 @@ class ServiceOrderController extends Controller
     const API_URL_ORDER = '/booking';
     const API_URL_GET_ORDER_DETAILS = '/get-details/{orderId}';
     const API_URL_CANCEL_ORDER = '/cancel/{orderId}';
+    const API_URL_GIVE_FEEDBACK = '/give-feedback/{orderId}';
 
     /** Method */
     const METHOD_ORDER = 'order';
     const METHOD_GET_ORDER_DETAILS = 'getOrderDetails';
     const METHOD_CANCEL_ORDER = 'cancelOrder';
+    const METHOD_GIVE_FEEDBACK = 'giveFeedback';
 
     /**
      * @functionName: serviceOrder
@@ -165,6 +167,54 @@ class ServiceOrderController extends Controller
             }
             DB::commit();
             return self::responseST('ST200xxx', 'Cancel order successfully.');
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return self::responseEX('EX500xxx', $ex->getMessage());
+        }
+    }
+
+    /**
+     * @functionName: giveFeedback
+     * @type:         public
+     * @param:        int $orderId
+     * @return:       String(Json)
+     */
+    public function giveFeedback(Request $request, $orderId)
+    {
+        if (!$this->isCustomer()) {
+            return self::responseERR(self::YOUR_ROLE_CANNOT_CALL_THIS_API, self::M_YOUR_ROLE_CANNOT_CALL_THIS_API);
+        }
+        try {
+            $orderId = (int) $orderId;
+            $rating = $request->{ServiceOrder::COL_RATING};
+            $feedback = $request->{ServiceOrder::VAL_FEED_BACK};
+            $validator = ServiceOrder::validator([
+                ServiceOrder::COL_ID => $orderId,
+                ServiceOrder::VAL_FEED_BACK => $feedback,
+                ServiceOrder::COL_RATING => $rating,
+            ]);
+            if ($validator->fails()) {
+                return self::responseIER($validator->errors()->first());
+            }
+            $order = ServiceOrder::find($orderId);
+            $currentUserId = Auth::user()->{User::COL_ID};
+            if ($order->{ServiceOrder::COL_USER_ID} != $currentUserId) {
+                return self::responseERR('ERR400xxx', 'This is not your order.');
+            }
+
+            $orderStatus = $order->{ServiceOrder::COL_STATUS};
+            if ($orderStatus != ServiceOrder::USED) {
+                return self::responseERR('ERR400xxx', 'This order was not completed.');
+            }
+            $order->{ServiceOrder::COL_RATING} = $rating;
+            $order->{ServiceOrder::COL_FEED_BACK} = $feedback;
+            DB::beginTransaction();
+            if (!$order->save()) {
+                DB::rollBack();
+                return self::responseERR('ERR400xxx', 'Give feedback failed.');
+            }
+            DB::commit();
+            return self::responseST('ST200xxx', 'Give feedback successfully.');
         } catch (Exception $ex) {
             DB::rollBack();
             return self::responseEX('EX500xxx', $ex->getMessage());
