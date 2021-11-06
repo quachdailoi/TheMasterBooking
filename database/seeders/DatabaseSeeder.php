@@ -46,8 +46,8 @@ class DatabaseSeeder extends Seeder
         Store::create([
             Store::COL_ID => 1,
             Store::COL_PHONE => '+0123456789',
-            Store::COL_NAME => '30Shine LVV',
-            Store::COL_ADDRESS => '123 Le Van Viet',
+            Store::COL_NAME => 'TCS Rạch Giá - Kiên Giang',
+            Store::COL_ADDRESS => '129 Nguyễn Trung Trực, TP Rạch Giá, Kiên Giang',
             Store::COL_WORK_SCHEDULE => [
                 Store::MODAY => [
                     Store::VAL_OPEN_AT => '07:30',
@@ -82,8 +82,177 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Store::class,
             File::COL_OWNER_ID => 1,
-            File::COL_PATH => getenv('DEFAULT_STORE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_1_1',
         ]);
+        //---
+        Store::create([
+            Store::COL_ID => 1,
+            Store::COL_PHONE => '+0272839223',
+            Store::COL_NAME => 'TCS Lê Văn Sĩ - TP.HCM',
+            Store::COL_ADDRESS => '312 Lê Văn Sĩ, Q.Tân Bình, TP.HCM',
+            Store::COL_WORK_SCHEDULE => [
+                Store::MODAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::TUESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::WEDNESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::THURSDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::FRIDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::SATURDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ],
+                Store::SUNDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ]
+            ]
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Store::class,
+            File::COL_OWNER_ID => 1,
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_2_2',
+        ]);
+        //---
+        Store::create([
+            Store::COL_ID => 1,
+            Store::COL_PHONE => '+01201239842',
+            Store::COL_NAME => 'TCS 30/4 - TP.Cần Thơ',
+            Store::COL_ADDRESS => '205 Đường 30 Tháng 4, Ninh Kiều, TP.Cần Thơ',
+            Store::COL_WORK_SCHEDULE => [
+                Store::MODAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::TUESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::WEDNESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::THURSDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::FRIDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::SATURDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ],
+                Store::SUNDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ]
+            ]
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Store::class,
+            File::COL_OWNER_ID => 1,
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_3_3',
+        ]);
+        //---
+        Store::create([
+            Store::COL_ID => 1,
+            Store::COL_PHONE => '+0234012312',
+            Store::COL_NAME => 'TCS Cà Mau',
+            Store::COL_ADDRESS => '21 Trần Hưng Đạo, Tp. Cà Mau',
+            Store::COL_WORK_SCHEDULE => [
+                Store::MODAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::TUESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::WEDNESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::THURSDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::FRIDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::SATURDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ],
+                Store::SUNDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ]
+            ]
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Store::class,
+            File::COL_OWNER_ID => 1,
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_4_4',
+        ]);
+        //---
+        Store::create([
+            Store::COL_ID => 1,
+            Store::COL_PHONE => '+0232122313',
+            Store::COL_NAME => 'TCS Châu Văn Liêm',
+            Store::COL_ADDRESS => '8 Châu Văn Liêm, Quận 5, Tp. HCM',
+            Store::COL_WORK_SCHEDULE => [
+                Store::MODAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::TUESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::WEDNESDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::THURSDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::FRIDAY => [
+                    Store::VAL_OPEN_AT => '07:30',
+                    Store::VAL_CLOSE_AT => '22:00',
+                ],
+                Store::SATURDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ],
+                Store::SUNDAY => [
+                    Store::VAL_OPEN_AT => '08:00',
+                    Store::VAL_CLOSE_AT => '23:00',
+                ]
+            ]
+        ]);
+        File::create([
+            File::COL_OWNER_TYPE => Store::class,
+            File::COL_OWNER_ID => 1,
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_5_5',
+        ]);
+        //---
         User::create([
             User::COL_ID => 1,
             User::COL_NAME => 'customer',
@@ -166,7 +335,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => ServiceCategory::class,
             File::COL_OWNER_ID => 1,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/service-categorys/service-category_1_6',
         ]);
         ServiceCategory::create([
             ServiceCategory::COL_ID => 2,
@@ -175,7 +344,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => ServiceCategory::class,
             File::COL_OWNER_ID => 2,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_CATEGORY_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/service-categorys/service-category_2_7',
         ]);
         ServiceCategory::create([
             ServiceCategory::COL_ID => 3,
@@ -228,7 +397,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 1,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_1_8',
         ]);
         //---
         Service::create([
@@ -241,7 +410,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 2,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_2_9',
         ]);
         Service::create([
             Service::COL_ID => 3,
@@ -253,7 +422,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 3,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_3_10',
         ]);
         //---
         Service::create([
@@ -266,7 +435,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 4,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_4_11',
         ]);
         //-----
         Service::create([
@@ -279,7 +448,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 5,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_5_12',
         ]);
         //------
         Service::create([
@@ -292,7 +461,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 6,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_6_13',
         ]);
         //------
         Service::create([
@@ -305,7 +474,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 7,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_7_14',
         ]);
         //------
         Service::create([
@@ -318,7 +487,7 @@ class DatabaseSeeder extends Seeder
         File::create([
             File::COL_OWNER_TYPE => Service::class,
             File::COL_OWNER_ID => 8,
-            File::COL_PATH => getenv('DEFAULT_SERVICE_IMAGE_URL'),
+            File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/services/service_8_15',
         ]);
 
         Category::create([
@@ -330,14 +499,14 @@ class DatabaseSeeder extends Seeder
             Category::COL_NAME => 'Sản phẩm cho nữ',
         ]);
 
-        \App\Models\Product::factory(100)->create();
+        /*\App\Models\Product::factory(100)->create();
         for ($i = 1; $i <= 50; $i++) {
             File::create([
                 File::COL_OWNER_TYPE => Product::class,
                 File::COL_OWNER_ID => $i,
                 File::COL_PATH => getenv('DEFAULT_PRODUCT_IMAGE_URL'),
             ]);
-        }
+        }*/
 
         $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
         foreach ($tables as $table) {
