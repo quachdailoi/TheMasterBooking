@@ -123,7 +123,7 @@ class DatabaseSeeder extends Seeder
         ]);
         File::create([
             File::COL_OWNER_TYPE => Store::class,
-            File::COL_OWNER_ID => 1,
+            File::COL_OWNER_ID => 2,
             File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_2_2',
         ]);
         //---
@@ -165,7 +165,7 @@ class DatabaseSeeder extends Seeder
         ]);
         File::create([
             File::COL_OWNER_TYPE => Store::class,
-            File::COL_OWNER_ID => 1,
+            File::COL_OWNER_ID => 3,
             File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_3_3',
         ]);
         //---
@@ -207,7 +207,7 @@ class DatabaseSeeder extends Seeder
         ]);
         File::create([
             File::COL_OWNER_TYPE => Store::class,
-            File::COL_OWNER_ID => 1,
+            File::COL_OWNER_ID => 4,
             File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_4_4',
         ]);
         //---
@@ -249,7 +249,7 @@ class DatabaseSeeder extends Seeder
         ]);
         File::create([
             File::COL_OWNER_TYPE => Store::class,
-            File::COL_OWNER_ID => 1,
+            File::COL_OWNER_ID => 5,
             File::COL_PATH => 'https://thespacut-bucket.s3.us-west-1.amazonaws.com/stores/store_5_5',
         ]);
         //---
