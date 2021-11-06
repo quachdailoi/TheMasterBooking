@@ -86,7 +86,7 @@ class DatabaseSeeder extends Seeder
         ]);
         //---
         Store::create([
-            Store::COL_ID => 1,
+            Store::COL_ID => 2,
             Store::COL_PHONE => '+0272839223',
             Store::COL_NAME => 'TCS Lê Văn Sĩ - TP.HCM',
             Store::COL_ADDRESS => '312 Lê Văn Sĩ, Q.Tân Bình, TP.HCM',
@@ -128,7 +128,7 @@ class DatabaseSeeder extends Seeder
         ]);
         //---
         Store::create([
-            Store::COL_ID => 1,
+            Store::COL_ID => 3,
             Store::COL_PHONE => '+01201239842',
             Store::COL_NAME => 'TCS 30/4 - TP.Cần Thơ',
             Store::COL_ADDRESS => '205 Đường 30 Tháng 4, Ninh Kiều, TP.Cần Thơ',
@@ -170,7 +170,7 @@ class DatabaseSeeder extends Seeder
         ]);
         //---
         Store::create([
-            Store::COL_ID => 1,
+            Store::COL_ID => 4,
             Store::COL_PHONE => '+0234012312',
             Store::COL_NAME => 'TCS Cà Mau',
             Store::COL_ADDRESS => '21 Trần Hưng Đạo, Tp. Cà Mau',
@@ -212,7 +212,7 @@ class DatabaseSeeder extends Seeder
         ]);
         //---
         Store::create([
-            Store::COL_ID => 1,
+            Store::COL_ID => 5,
             Store::COL_PHONE => '+0232122313',
             Store::COL_NAME => 'TCS Châu Văn Liêm',
             Store::COL_ADDRESS => '8 Châu Văn Liêm, Quận 5, Tp. HCM',
