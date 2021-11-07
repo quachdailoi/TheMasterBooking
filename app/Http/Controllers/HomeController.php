@@ -34,7 +34,7 @@ class HomeController extends Controller
     {
         try {
             $productCategories = Category::with(['products' => function ($query) {
-                $query->take(5);
+                $query->take(10);
             }])->get();
 
             $data['productCategories'] = $productCategories;
