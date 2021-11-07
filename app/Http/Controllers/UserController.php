@@ -558,6 +558,7 @@ class UserController extends Controller
                         Product::COL_NAME => $product->{Product::COL_NAME},
                         Product::COL_DESCRIPTION => $product->{Product::COL_DESCRIPTION},
                         Product::VAL_QUANTITY => $quantity,
+                        'remain_quantity' => $product->{Product::COL_QUANTITY},
                         Product::VAL_IMAGES => $product[Product::VAL_IMAGES],
                         Product::COL_PRICE => $product->{Product::COL_PRICE},
                         Product::VAL_AMOUNT => $quantity * $product[Product::COL_PRICE],
