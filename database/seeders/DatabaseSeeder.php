@@ -48,6 +48,8 @@ class DatabaseSeeder extends Seeder
             Store::COL_PHONE => '+0123456789',
             Store::COL_NAME => 'TCS Rạch Giá - Kiên Giang',
             Store::COL_ADDRESS => '129 Nguyễn Trung Trực, TP Rạch Giá, Kiên Giang',
+            Store::COL_CITY => 'Kiên Giang',
+            Store::COL_SERVICE_SLOTS => 10,
             Store::COL_WORK_SCHEDULE => [
                 Store::MODAY => [
                     Store::VAL_OPEN_AT => '07:30',
@@ -90,6 +92,8 @@ class DatabaseSeeder extends Seeder
             Store::COL_PHONE => '+0272839223',
             Store::COL_NAME => 'TCS Lê Văn Sĩ - TP.HCM',
             Store::COL_ADDRESS => '312 Lê Văn Sĩ, Q.Tân Bình, TP.HCM',
+            Store::COL_CITY => 'TP.HCM',
+            Store::COL_SERVICE_SLOTS => 15,
             Store::COL_WORK_SCHEDULE => [
                 Store::MODAY => [
                     Store::VAL_OPEN_AT => '07:30',
@@ -132,6 +136,8 @@ class DatabaseSeeder extends Seeder
             Store::COL_PHONE => '+01201239842',
             Store::COL_NAME => 'TCS 30/4 - TP.Cần Thơ',
             Store::COL_ADDRESS => '205 Đường 30 Tháng 4, Ninh Kiều, TP.Cần Thơ',
+            Store::COL_CITY => 'TP.Cần Thơ',
+            Store::COL_SERVICE_SLOTS => 15,
             Store::COL_WORK_SCHEDULE => [
                 Store::MODAY => [
                     Store::VAL_OPEN_AT => '07:30',
@@ -173,7 +179,9 @@ class DatabaseSeeder extends Seeder
             Store::COL_ID => 4,
             Store::COL_PHONE => '+0234012312',
             Store::COL_NAME => 'TCS Cà Mau',
-            Store::COL_ADDRESS => '21 Trần Hưng Đạo, Tp. Cà Mau',
+            Store::COL_ADDRESS => '21 Trần Hưng Đạo, Tp.Cà Mau',
+            Store::COL_CITY => 'Cà Mau',
+            Store::COL_SERVICE_SLOTS => 5,
             Store::COL_WORK_SCHEDULE => [
                 Store::MODAY => [
                     Store::VAL_OPEN_AT => '07:30',
@@ -215,7 +223,9 @@ class DatabaseSeeder extends Seeder
             Store::COL_ID => 5,
             Store::COL_PHONE => '+0232122313',
             Store::COL_NAME => 'TCS Châu Văn Liêm',
-            Store::COL_ADDRESS => '8 Châu Văn Liêm, Quận 5, Tp. HCM',
+            Store::COL_ADDRESS => '8 Châu Văn Liêm, Quận 5, TP.HCM',
+            Store::COL_CITY => 'TP.HCM',
+            Store::COL_SERVICE_SLOTS => 10,
             Store::COL_WORK_SCHEDULE => [
                 Store::MODAY => [
                     Store::VAL_OPEN_AT => '07:30',
