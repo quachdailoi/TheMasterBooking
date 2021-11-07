@@ -89,13 +89,15 @@ class ProductOrderController extends Controller
                 if ($product->{Product::COL_QUANTITY} < $cart[$productId]) {
                     array_push($notEnoughQuantityProducts, $product);
                 }
-                $amount += $product->{Product::COL_PRICE} * $cart[$productId];
-                $product->{Product::COL_QUANTITY} -= $cart[$productId];
-                if (!$product->save()) {
-                    DB::rollBack();
-                    return self::responseERR(POM::CHECKOUT_FAILED, POM::CHECKOUT_FAILED);
+                else {
+                    $amount += $product->{Product::COL_PRICE} * $cart[$productId];
+                    $product->{Product::COL_QUANTITY} -= $cart[$productId];
+                    if (!$product->save()) {
+                        DB::rollBack();
+                        return self::responseERR(POM::CHECKOUT_FAILED, POM::CHECKOUT_FAILED);
+                    }
+                    $product->{Product::COL_QUANTITY} = $cart[$productId];
                 }
-                $product->{Product::COL_QUANTITY} = $cart[$productId];
             }
             if (!empty($notEnoughQuantityProducts)) {
                 DB::rollBack();
